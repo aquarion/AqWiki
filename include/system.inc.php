@@ -8,13 +8,13 @@
 	$Id$
 
 	$Log$
-	Revision 1.7  2004/07/05 20:29:05  aquarion
-	* Lets try actually using _real_ CVS keywords, not words I guess at this time
-	+ [[AQWIKI]] template tag
-	+ Default template finally exists! Sing yay!
-	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
-	* Minor fixen
-
+	Revision 1.8  2004/08/12 19:37:53  aquarion
+	+ RSS output
+	+ Detailed RSS output for Recent
+	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
+	* Fixed Recent to cope with oneWiki format
+	+ added Host configuation directive
+	
 
 *******************************************************************************/
 
@@ -251,6 +251,117 @@ function debug($message) {
 		global $DEBUG;
 		$DEBUG[] = $message;
 	}
+}
+
+function buildRSS($content){
+
+	/* $content is an array containing:
+			
+			[0] Name of Wiki template
+			[1] Title of page
+			[2] Content of page
+			[3] Author of page
+			[4] Date of modification */
+
+	global $_CONFIG;
+	global $_EXTRAS;
+
+	$content[2] = process($content[2],$content[0]);
+	$content[4] = strtotime($content[4]);
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+		$url = $_CONFIG['base']."/".$content[1];
+	} else {
+		$base = $_CONFIG['base']."/".$content[0];
+		$url = $_CONFIG['base']."/".$content[0]."/".$content[1];
+	}
+
+	$out ="<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		 ."<rss version=\"2.0\" \n"
+		 ."  xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+#		 ."  xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n"
+		 ."  xmlns:admin=\"http://webns.net/mvcb/\"\n"
+		 ."  xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+		 ."  xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n"
+#		 ."  xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\"\n"
+#		 ."  xmlns:trackback=\"http://madskills.com/public/xml/rss/module/trackback/\"
+		 .">\n"
+		 ."<channel>\n"
+		 ."<title>".$content[0]." - ".$content[1]."</title>\n"
+		 ."<link>".$url."</link>\n"
+		 ."<description>A Wiki Page</description>\n"
+		 ."<dc:language>en-gb</dc:language>\n"
+		 ."<dc:creator>".$content[3]."</dc:creator>\n"
+		 ."<dc:rights>Copyright ".date("Y", $content[4])." ".$content[3]."</dc:rights>\n"
+		 ."<dc:date>".date("Y-m-d\TH:i:00O", $content[4])."</dc:date>\n"
+
+		 ."<admin:generatorAgent rdf:resource=\"".$_EXTRAS['versionURL']."\" />\n";
+#		 ."<admin:errorReportsTo rdf:resource=\"mailto:".$_EP['admin']."\"/>\n"
+
+	if ($_EXTRAS['data']){
+		// Data is of form array(url, title, description, date);
+		foreach ($_EXTRAS['data'] as $data){
+
+			$desc = htmlspecialchars(break_string(strtr($data[2],"’","'"),400),ENT_NOQUOTES);
+			$out .="<item>\n"
+				 ."\t<title>".htmlspecialchars($data[1],ENT_NOQUOTES)."</title>\n"
+				 ."\t<link>".$data[0]."</link>\n"
+		#		 ."\t<comments>".$guid."</comments>\n"
+				 ."\t<description>".$desc."</description>\n"
+				 ."\t<guid isPermaLink=\"true\">".$data[1]."</guid>\n";
+
+			$out .= "\t<content:encoded><![CDATA[".strtr($data[1],"’","'")."]]></content:encoded>\n"
+				 ."\t<dc:date>".date("Y-m-d\TH:i:00O",$data[3])."</dc:date>\n";
+			$out .= "</item>\n";
+		}
+
+	} else {
+		$desc = htmlspecialchars(break_string(strtr($content[2],"’","'"),400),ENT_NOQUOTES);
+		$out .="<item>\n"
+			 ."\t<title>".htmlspecialchars($content[1],ENT_NOQUOTES)."</title>\n"
+			 ."\t<link>".$url."</link>\n"
+	#		 ."\t<comments>".$guid."</comments>\n"
+			 ."\t<description>".$desc."</description>\n"
+			 ."\t<guid isPermaLink=\"true\">".$url."</guid>\n";
+
+		$out .= "\t<content:encoded><![CDATA[".strtr($content[2],"’","'")."]]></content:encoded>\n"
+			 ."\t<dc:date>".date("Y-m-d\TH:i:00O",$content[4])."</dc:date>\n";
+		$out .= "</item>\n";
+
+	}
+	$out .= "</channel>\n"
+		."</rss>";
+
+	#echo $out;
+
+	return $out;
+}
+
+/* Break a string at the nearest space to $length */
+function break_string($string_to_break, $length, $highlight=false) {
+
+    /* Breaks a string at $length chars.*/
+    $string_to_break = strip_tags($string_to_break);
+    
+    if(strlen($string_to_break)>($length + ($length/10))) 
+    { 
+        $string = substr($string_to_break,0,($length-1)); 
+        if($string != " ") 
+        { 
+        $last_space = strrpos($string, " "); 
+        $string = substr($string_to_break,0,$last_space); 
+        return($string."..."); 
+        } else { 
+        $return = $string."..."; 
+        } 
+    } else { 
+        $return = $string_to_break; 
+    }
+    if ($highlight){
+        preg_replace("/($highlight)/i", "<span class=\"searchword\">\\1</span>",$return);
+    }
+    return $return; 
 }
 
 ?>

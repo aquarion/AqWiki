@@ -10,6 +10,14 @@ db = "mysql://username:password@host/databaseName"
 ; of this is "wiki". If aqWiki is in the root, this is blank (default)
 
 base = ""
+
+;host = apache server host
+; The hostname of the current server, used for links meant to be 
+; used from the Big Wide World (like the RSS feed)
+; If you're using SSL you *MUST* set this, since by default 
+; I assume you're running http, rather than https
+; host = "http://host.name"
+
 debug = true
 
 ;oneWiki. Setting this will restrict aqWiki to only ever having one wiki, which you access with the default url.

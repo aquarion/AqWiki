@@ -8,13 +8,20 @@
 	$Id$
 
 	$Log$
+	Revision 1.6  2004/08/12 19:37:53  aquarion
+	+ RSS output
+	+ Detailed RSS output for Recent
+	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
+	* Fixed Recent to cope with oneWiki format
+	+ added Host configuation directive
+
 	Revision 1.5  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
 	+ Default template finally exists! Sing yay!
 	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
 	* Minor fixen
-
+	
 	Revision 1.4  2004/07/05 18:09:46  aquarion
 	+ clash repair, no content changed.
 	
@@ -275,8 +282,8 @@ class pearDB extends dataSource {
 
 	//function: recent();
 	function viewRecent(){
-		global $_CONFIG;
-		$base = $_CONFIG['base']."/".$wiki;
+		$recent = array();
+
 		$sql = "select "
 				."wikipage.*, revision.*, creatorname.username as origin, "
 				."unix_timestamp(revision.created) as created "
@@ -287,15 +294,12 @@ class pearDB extends dataSource {
 				."order by revision.created desc limit 50";
 
 		$result = $this->query($sql);
+
+		$recent = array();
 		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-			$line = date("r",$row['created'])." - \"".$row['name']."\":$base/".$row['name']." - \"".$row['creator']."\":$base/~".$row['creator'];
-			if ($row['comment']){
-				$line .= " : ".$row['comment'];
-			}
-			$out .= "* ".$line." [ <a href=\"".$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
-			." <a href=\"".$base."/".$row['name']."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the newest revision\">Diff</a> ]\n";
+			$recent[] = $row;
 		}
-		return $out;
+		return $recent;
 
 	}
 

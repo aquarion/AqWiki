@@ -8,13 +8,20 @@
 	$Id$
 
 	$Log$
+	Revision 1.11  2004/08/12 19:37:53  aquarion
+	+ RSS output
+	+ Detailed RSS output for Recent
+	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
+	* Fixed Recent to cope with oneWiki format
+	+ added Host configuation directive
+
 	Revision 1.10  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
 	+ Default template finally exists! Sing yay!
 	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
 	* Minor fixen
-
+	
 
 *******************************************************************************/
 
@@ -48,7 +55,7 @@ function process($text, $wiki){
 	#$text = preg_replace("/\[\[SEARCH\|(.*?)\]\]/",searchFor($wiki,'\1'), $text);
 	#$text = preg_replace("/\[\[ALLBY\|(.*?)\]\]/",searchAuthor($wiki,'\1'), $text);
 	if (preg_match("#\[\[RECENT\]\]#",$text)){
-		$text = preg_replace("/\[\[RECENT\]\]/",$dataSource->viewRecent($wiki), $text);
+		$text = preg_replace("/\[\[RECENT\]\]/",recent($wiki), $text);
 	}
 	if (preg_match("/\[\[INDEX\]\]/",$text)){
 		$text = preg_replace("/\[\[INDEX\]\]/",index(), $text);
