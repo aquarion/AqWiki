@@ -15,7 +15,13 @@ function process($text, $wiki){
 	global $dataSource;
 	global $_EXTRAS;
 	global $_CONFIG;
-	$base = $_CONFIG['base']."/".$wiki;
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+	} else {
+		$base = $_CONFIG['base']."/".$wiki;
+	}
+
 
 	function stripSpaces($text){
 		return ereg_replace("/[:space:]/","",$text);
@@ -137,10 +143,10 @@ function process($text, $wiki){
 		if (!$dataSource->pageExists($stripped)){
 			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
 			#$link =  "\"".$title."\":".$base."/".$stripped;	
-			$link = '<a href="'.$base."/".$stripped.'" class="uncreated">¿'.$title.'?</a>';
+			$link = '<a href="'.$base."/".$stripped.'" class="uncreated wiki" title="Uncreated article '.$title.'">¿'.$title.'?</a>';
 		} else {
 			#$link =  "\"".$title."\":".$base."/".$stripped;
-			$link = '<a href="'.$base."/".$stripped.'">'.$title.'</a>';
+			$link = '<a href="'.$base."/".$stripped.'" class="wiki" title="Internal link to article '.$title.'">'.$title.'</a>';
 		}
 
 		#$link =  "\"".$match."\":".$base."/".$stripped;
@@ -169,8 +175,14 @@ function wiki($wiki, $article){
 	global $dataSource;
 	global $_CONFIG;
 	global $_EXTRAS;
-	$base = $_CONFIG['base']."/".$wiki;
-	$url = $base."/".$article;
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+		$url = $_CONFIG['base']."/$article";
+	} else {
+		$base = $_CONFIG['base']."/".$wiki;
+		$url = $_CONFIG['base']."/$wiki/$article";
+	}
 
 	$content = array(
 		$wiki,
@@ -454,7 +466,7 @@ function wiki($wiki, $article){
 
 		default:
 			if (!$dataSource->pageExists($article)){
-				$content[2] = "This page doesn't exist yet, Would you like to create it?\n\n\"Go On Then\":".$_CONFIG['base']."/$wiki/$article?action=edit";
+				$content[2] = "This page doesn't exist yet, Would you like to create it?\n\n\"Go On Then\":".$url."?action=edit";
 			} else {
 				$_EXTRAS['nearby'] = $dataSource->nearby($article);
 	

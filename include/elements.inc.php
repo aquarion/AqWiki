@@ -10,9 +10,12 @@ $Id$
 
 
 	$Log$
+	Revision 1.8  2004/06/28 16:40:11  aquarion
+	Added some files that missed the last commit, fixed a couple of "oneWiki" bugs
+
 	Revision 1.7  2004/06/25 15:07:13  aquarion
 	* various fixes resulting from the abstraction of the data layer.
-
+	
 	Revision 1.6  2004/06/25 12:54:25  aquarion
 	All change, apparently. All I've done is abstracted the data layer a bit, why every file's changed I'm not quite sure...
 	
@@ -146,6 +149,10 @@ function page($content){
 	$out = preg_replace("/\[\[USER\]\]/",$_EXTRAS['me'], $out);
 	$out = preg_replace("/\[\[AUTH\]\]/",$_EXTRAS['auth'], $out);
 	$out = preg_replace("/\[\[NEARBY\]\]/",textile(menu($_EXTRAS['nearby'],"nearby")), $out);
+
+	global $DEBUG;
+	$out .= implode("<br>\n",$DEBUG);
+
 	return $out;
 
 }

@@ -235,4 +235,13 @@ function striarray($needle, $haystack){
 	}
 	return 0;
 }
+
+function debug($message) {
+	global $_CONFIG;
+	if ($_CONFIG['debug']){
+		global $DEBUG;
+		$DEBUG[] = $message;
+	}
+}
+
 ?>
