@@ -15,9 +15,13 @@
 	$Id$
 
 	$Log$
+	Revision 1.14  2004/09/29 10:19:34  aquarion
+	* Use better textile if available
+	* Fix links in RSS feeds
+
 	Revision 1.13  2004/09/05 10:16:48  aquarion
 	Moved versions and edit this page to templates
-
+	
 	Revision 1.12  2004/08/29 20:27:12  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
@@ -342,12 +346,12 @@ function buildRSS($content){
 			$desc = htmlspecialchars(break_string(strtr($data[2],"’","'"),400),ENT_NOQUOTES);
 			$out .="<item>\n"
 				 ."\t<title>".htmlspecialchars($data[1],ENT_NOQUOTES)."</title>\n"
-				 ."\t<link>".$data[0]."</link>\n"
+				 ."\t<link>".$_CONFIG['host'].$_CONFIG['base'].$data[0]."</link>\n"
 		#		 ."\t<comments>".$guid."</comments>\n"
 				 ."\t<description>".$desc."</description>\n"
-				 ."\t<guid isPermaLink=\"true\">".$data[1]."</guid>\n";
+				 ."\t<guid isPermaLink=\"true\">".$_CONFIG['host'].$_CONFIG['base'].$data[0]."</guid>\n";
 
-			$out .= "\t<content:encoded><![CDATA[".strtr($data[1],"’","'")."]]></content:encoded>\n"
+			$out .= "\t<content:encoded><![CDATA[".strtr($data[2],"’","'")."]]></content:encoded>\n"
 				 ."\t<dc:date>".date("Y-m-d\TH:i:00O",$data[3])."</dc:date>\n";
 			$out .= "</item>\n";
 		}
