@@ -240,7 +240,7 @@ function wiki($wiki, $article){
 
 		case "src":
 			
-			$_EXTRAS['textarea'] = htmlspecialchars(getContent($wiki, $article));
+			$_EXTRAS['textarea'] = htmlspecialchars($dataSource->getContent($article));
 			$content[2] .= "<pre>[[TEXTAREA]]</pre>.\"Normal\":$article";
 
 			break;
@@ -358,8 +358,7 @@ function wiki($wiki, $article){
 				doAuth($_EXTRAS['reqEdit']);
 			}
 
-			$sql = getSQL($wiki, $article);
-			$result = $db->query($sql);
+
 
 			$form = true;
 			$text = false;
@@ -418,35 +417,17 @@ function wiki($wiki, $article){
 					break;
 
 				case "Post":
-					$post_res = $result;
-					if ($result->numRows() == 0){
-						$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$wiki."\", \"".$article."\", NOW(), 1)";
-						$post_res = $db->query($sql);
-						$id = mysql_insert_id();
-					} else {
-						$row = $post_res->fetchRow(DB_FETCHMODE_ASSOC);
-						$id = $row['page'];
-					}
-
-					$author = "\"".$_EXTRAS['me']."\"";
-
-					$sql  = "insert into revision (content, comment, creator, page, created) values (\"".$_POST['content']."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
-
-					$post_res = $db->query($sql);
-					if (DB::isError($post_res)) {
-						panic("database",$post_res->getMessage(), $sql);
-					}
+					$dataSource->post($article, $_POST['content'], $_POST['comment']);
 					$form = false;
 			}
 
 
 			if ($text){
 				$_EXTRAS['textarea'] = $text;
-			} elseif ($result->numRows() == 0){
+			} elseif (!$dataSource->pageExists($article)){
 				$_EXTRAS['textarea'] = "";
 			} else {
-				$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
-				$_EXTRAS['textarea'] = htmlentities(stripslashes($row['content']));
+				$_EXTRAS['textarea'] = htmlentities(stripslashes($dataSource->getContent($article)));
 			}
 			
 			if ($row['content'] == ""){

@@ -8,9 +8,12 @@
 	$Id$
 
 	$Log$
+	Revision 1.2  2004/06/25 15:07:13  aquarion
+	* various fixes resulting from the abstraction of the data layer.
+
 	Revision 1.1  2004/06/25 12:54:25  aquarion
 	All change, apparently. All I've done is abstracted the data layer a bit, why every file's changed I'm not quite sure...
-
+	
 
 *******************************************************************************/
 
@@ -172,7 +175,6 @@ class pearDB extends dataSource {
 
 	//function: getPage(page, revision) - return the contents of a wikiPage (and previous revisions)
 	function getPage($article){
-
 		$return = array();
 
 		$sql = $this->getSQL($article);
@@ -187,10 +189,10 @@ class pearDB extends dataSource {
 	}
 
 	//function: getContent(page) - just return the content of a given page
-	function getContent($wiki, $article){
+	function getContent($article){
 		$sql = "select revision.*"
 					."from wikipage, revision "
-					."where wikipage.wiki = \"$wiki\" and wikipage.name = \"$article\" and wikipage.page = revision.page "
+					."where wikipage.wiki = \"".$this->wiki."\" and wikipage.name = \"$article\" and wikipage.page = revision.page "
 					."order by revision.created desc limit 1";
 
 		$result = $this->query($sql);
@@ -204,7 +206,6 @@ class pearDB extends dataSource {
 
 
 	//function: diff(from, to?) 
-
 	function diff($article, $from, $to){
 		if ($from){
 			$sql = $this->getSQL($article, " and revision = ".$from);
@@ -287,23 +288,15 @@ class pearDB extends dataSource {
 		global $_EXTRAS;
 		/*
 
-		TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully.
-
-		This code returns all the pages that *have ever* contained the search term, and was removed in favour of the below.
+		TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully. */
 		
 		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
 		." FROM revision"
 		." LEFT JOIN wikipage ON wikipage.page = revision.page"
 		." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-		." GROUP BY wikipage.page"; */
+		." GROUP BY wikipage.page";
 
-		/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ only */
-
-		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-		." FROM revision"
-		." LEFT JOIN wikipage ON wikipage.page = revision.page and revision.revision = (SELECT max(r2.revision) from revision as r2 where r2.page = revision.page)"
-		." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"".$this->wiki."\""
-		." GROUP BY wikipage.page"; 
+		/* There is code returns all the pages that *now* contain the search term, but is MySQL 4+ only, so is in that class */
 
 
 		$result = $this->query($sql);
@@ -399,7 +392,29 @@ class mysql4 extends pearDB {
 		}
 		return "h3. Search for $terms\n".menu($return);
 	}
-	
+
+	function post($name, $content, $comment){
+		$sql = $this->getSQL($wiki, $article);
+		$result = $this->query($sql);
+
+		global $_EXTRAS;
+
+		$post_res = $result;
+		if ($result->numRows() == 0){
+			$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$this->wiki."\", \"".$name."\", NOW(), 1)";
+			$post_res = $this->query($sql);
+			$id = mysql_insert_id();
+		} else {
+			$row = $post_res->fetchRow(DB_FETCHMODE_ASSOC);
+			$id = $row['page'];
+		}
+
+		$author = "\"".$_EXTRAS['me']."\"";
+
+		$sql  = "insert into revision (content, comment, creator, page, created) values (\"".$content."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
+
+		$this->query($sql);
+	}
 }
 
 //End PHP ?>
