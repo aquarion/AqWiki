@@ -119,7 +119,7 @@ echo "\n\nData from ((comicsData))";
 
 echo "\n\n Be ";
 for($i = 0; $i <= 7; $i++){
-	echo "\"".$days[$i][0]."(".$days[$i].")\":[[BASE]]/[[TITLE]]?day=".$i." ";
+	echo "<a href=\"[[BASE]]/[[TITLE]]?day=".$i."\" title=\"".$days[$i]."\">".$days[$i][0]."</a> ";
 }
 echo "\n".$short;
 

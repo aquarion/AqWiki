@@ -15,9 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.16  2005/02/16 17:13:37  aquarion
+	* Database fixes
+	* New Textile Library support
+	* Developement resumes, yay
+
 	Revision 1.15  2004/10/22 13:56:08  aquarion
 	* Fixed Stuff
-
+	
 	Revision 1.14  2004/09/29 10:19:34  aquarion
 	* Use better textile if available
 	* Fix links in RSS feeds
@@ -65,6 +70,25 @@ function print_r_to_var($a) {
 
 function panic($area, $error, $details){
 	echo "<h2>$area</h2>$error<p>$details</p>";die();
+}
+
+function checkAuth($action){
+	global $_EXTRAS;
+	switch($action){
+		case "edit":
+			if (isset($_EXTRAS['reqEdit'])){
+				if ($_EXTRAS['reqEdit'] == $_EXTRAS['me']){
+					return true;
+				}
+			} elseif(isset($_EXTRAS['reqEdits'])) {
+				if (in_array($_EXTRAS['me'],explode(",",$_EXTRAS['reqEdits']))){
+					return true;
+				}
+			} else {
+				return true;
+			}
+	}
+	return false;
 }
 
 function doAuth($requirement, $action = "access this"){
@@ -149,10 +173,10 @@ function menu($items,$class="", $id=""){
 		foreach ($items as $item){
 
 			if ($item['link']){
-				$out .= "\t* \"".$item['name']."\":";
+				$out .= "* \"".$item['name']."\":";
 				$out .= $item['link']."\n";
 			} else {
-				$out .= "\t* ".$item['name']."\n";
+				$out .= "* ".$item['name']."\n";
 			}
 			$i++ ;
 		}
