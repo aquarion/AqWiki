@@ -114,7 +114,7 @@ function process($text, $wiki){
 		$links[] = array($matches[0][$index], $link, $title);
 	}*/
 	
-	preg_match_all("/\(\((.*?)\)\)/",$text,$matches);
+	preg_match_all("/\(\((.*?)\)\)/","\n".$text."\n",$matches);
 	foreach($matches[1] as $index => $title){
 		if (! strpos($matches[1][$index], "|")){
 			$link = preg_replace("/(\W)/", "", $title);
@@ -137,13 +137,18 @@ function process($text, $wiki){
 			panic("database",$result->getMessage(), $sql);
 		}
 		if ($result->numRows() == 0){
-			$link =  "%(uncreated)".$title."\"?(Uncreated)\":".$base."/".$stripped."?action=edit%";	
+			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
+			#$link =  "\"".$title."\":".$base."/".$stripped;	
+			$link = '<a href="'.$base."/".$stripped.'" class="uncreated">¿'.$title.'?</a>';
 		} else {
-			$link =  "\"".$title."\":".$base."/".$stripped;
+			#$link =  "\"".$title."\":".$base."/".$stripped;
+			$link = '<a href="'.$base."/".$stripped.'">'.$title.'</a>';
 		}
 
 		#$link =  "\"".$match."\":".$base."/".$stripped;
-		$text = preg_replace("/(\W)".$replace."(\W)/","$1$link$2", $text);
+		#echo $replace;
+		$text = preg_replace("/(\W|^)".$replace."(\W)/","$1$link$2", $text);
+		#$text = preg_replace("/(\W|^)".$replace."(\W)/","$1|$replace|$2", $text);
 	}
 
 	$text = textile($text);
@@ -270,8 +275,9 @@ function wiki($wiki, $article){
 			}
 			$content[3] = $author;
 			$content[4] = date("r",$to['created']);
-			$_EXTRAS['diff'] = arr_diff(explode("\n", stripslashes($from['content'])),explode("\n", stripslashes($to['content'])));
-			$content[2] .= "[[VAR|diff]]";
+			#$_EXTRAS['textarea'] = arr_diff(explode("\n", wordwrap(stripslashes($from['content']))),explode("\n", wordwrap(stripslashes($to['content']))));
+			$_EXTRAS['textarea'] = diff(wordwrap(stripslashes($from['content'])),wordwrap(stripslashes($to['content'])));
+			$content[2] .= "[[TEXTAREA]]";
 
 			break;
 
@@ -279,6 +285,112 @@ function wiki($wiki, $article){
 			
 			$_EXTRAS['textarea'] = htmlspecialchars(getContent($wiki, $article));
 			$content[2] .= "<pre>[[TEXTAREA]]</pre>.\"Normal\":$article";
+
+			break;
+
+		case "newUser":
+			/*mysql> describe users;
+			+---------------+------------------+-------------------+
+			| Field         | Type             | Collation         |
+			+---------------+------------------+-------------------+
+			| id            | int(10) unsigned | binary            |
+			| username      | varchar(64)      | latin1_swedish_ci |
+			| real_name     | tinytext         | latin1_swedish_ci |
+			| email         | tinytext         | latin1_swedish_ci |
+			| birthday      | date             | latin1_swedish_ci |
+			| password      | tinytext         | latin1_swedish_ci |
+			| location      | int(11)          | binary            |
+			| last_access   | timestamp        | latin1_swedish_ci |
+			| date_creation | timestamp        | latin1_swedish_ci |
+			| access_level  | int(11)          | binary            |
+			+---------------+------------------+-------------------+
+			10 rows in set (0.05 sec)
+			*/
+
+			$form = '<form method=post action="'.$_SERVER['REQUEST_URI'].'">'."\n\n"
+			.'|Username|<input type="text" name="username" value="'.$_POST['username'].'">|(Must not be blank)|'."\n"
+			.'|Display Name|<input type="text" name="name" value="'.$_POST['name'].'">|(Must not be blank)<br>|'."\n"
+			.'|e-Mail|<input type="text" name="email" value="'.$_POST['email'].'">|(Must not be blank)<br>|'."\n"
+			.'|Password|<input type="password" name="password">|(Must not be blank)<br>|'."\n"
+			.'|Repeat Password |<input type="password" name="password2">| (Must match above) |'."\n"
+			.'| Submit |<input type="submit" name="submit" value="Send Form">| Bow to my will |'."\n\n"
+			.'</form>';
+
+			#print_r($_POST);
+
+			if ($_POST['submit']){
+				$errors = array();
+				if ($_POST['username'] == ""){
+					$errors[] = "Username cannot be blank";
+				} elseif (!isUnique("users", "username", $_POST['username'])){
+					$errors[] = "Username must be unique";
+				}	
+
+				if ($_POST['email'] == ""){
+					$errors[] = "email cannot be blank";
+				} elseif (!isUnique("users", "email", $_POST['email'])){
+					$errors[] = "email must be unique";
+				}
+
+				if ($_POST['name'] == ""){
+					$errors[] = "Display Name cannot be blank";
+				} elseif (!isUnique("users", "real_name", $_POST['name'])){
+					$errors[] = "Display Name must be unique";
+				}
+
+				if ($_POST['password'] == ""){
+					$errors[] = "password cannot be blank";
+				} elseif ($_POST['password'] != $_POST['password2']){
+					$errors[] = "passwords must match";
+				}
+
+			/*mysql> describe users;
+			+---------------+------------------+-------------------+
+			| Field         | Type             | Collation         |
+			+---------------+------------------+-------------------+
+			| id            | int(10) unsigned | binary            |
+			| username      | varchar(64)      | latin1_swedish_ci |
+			| real_name     | tinytext         | latin1_swedish_ci |
+			| email         | tinytext         | latin1_swedish_ci |
+			| birthday      | date             | latin1_swedish_ci |
+			| password      | tinytext         | latin1_swedish_ci |
+			| location      | int(11)          | binary            |
+			| last_access   | timestamp        | latin1_swedish_ci |
+			| date_creation | timestamp        | latin1_swedish_ci |
+			| access_level  | int(11)          | binary            |
+			+---------------+------------------+-------------------+
+			10 rows in set (0.05 sec)
+			*/
+
+				if (count($errors) == 0){
+					$sql = "insert into users (username, real_name, email, password, date_creation) "
+						.' values ("'.$_POST['username'].'", "'.$_POST['name']
+							.'", "'.$_POST['email'].'", "'.$_POST['password']
+							.'", NOW())';
+					$result = $db->query($sql);
+					if (DB::isError($result)) {
+						panic("database",$result->getMessage(), $sql);
+					}
+
+					$out = "h2. New user created\n\n";
+					$out .= "Hi, ".$_POST['name'].", Welcome to this aqWiki install.\n\n";
+					$url = parse_url($_SERVER['REQUEST_URI']);
+					$out .= "You should now \"login\":".$url['path']."?action=login";
+
+				} else {
+					$out = "h2. Error in user creation\n\n";
+					foreach($errors as $error){
+						$out .= "* ".$error."\n";
+					}
+					$out .= "\n\n".$form;
+				}
+			} else {
+				$out = "h2. New user\n\n";
+				$out .= $form;
+			}
+			
+
+			$content[2] = $out;
 
 			break;
 		
@@ -413,10 +525,15 @@ function wiki($wiki, $article){
 			} else {
 				$_EXTRAS['nearby'] = nearby($wiki, $article);
 				$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
+				if (strcmp ($row['wiki'] , $wiki) != 0){
+					$base = $_CONFIG['base']."/".$row['wiki'];
+					$url = $base."/".$article;
+					header("location: ".$url);	
+				}
 				$content[2] = $row['content']."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
 				$content[3] = $row['creator'];
 				$content[4] = date("r",$row['created']);
-				$out = "\n\nh2. Versions:\n";
+				$out = "\n\n*Versions:*\n";
 				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
@@ -446,6 +563,7 @@ function wiki($wiki, $article){
 
 }
 
+
 function getWikis($quickList = false){
 	global $db;
 
@@ -467,5 +585,4 @@ function getWikis($quickList = false){
 
 	return $wikis;
 }
-
 ?>

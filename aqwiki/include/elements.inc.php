@@ -8,12 +8,15 @@
 	$Id$
 
 	$Log$
+	Revision 1.5  2004/06/22 15:00:38  aquarion
+	+ Made system do neat reverse question mark thing for uncreated links
+	* Made ((Aquarion))'s link to "Aquarion" instead of "Aquarion's" (This is a Textile bug)
+
 	Revision 1.4  2004/06/17 22:20:33  aquarion
 	*** empty log message ***
-
+	
 
 *******************************************************************************/
-
 
 
 function calendar ($data, $month, $year) {
@@ -140,10 +143,10 @@ function page($content){
 	if (file_exists("etc/".$content[0].".tpl")){
 		$file = "etc/".$content[0].".tpl";
 		$template = implode("",file($file));
-	} elseif (file_exists("etc/page.tpl")){
+	} elseif (file_exists("etc/default.tpl")){
 		$template = implode("",file("etc/page.tpl"));
 	} else {
-		$template = "<html>\n<head>\n<title>[[WIKI]] - [[TITLE]]</title>\n</head>\n<body>\n<h1>[[TITLE]]</h1>\n[[CONTENT]]\n<hr>\n[[AUTHOR]] @ [[DATE]]<br>You Are: [[USER]]<br><a href=\"[[URL]]?action=login\">login</a></body>\n</html>";
+		$template = "<html>\n<head>\n<title>[[WIKI]] - [[TITLE]]</title>\n</head>\n<body>\n<h1>[[TITLE]]</h1>\n[[CONTENT]]\n<hr>\n[[AUTHOR]] @ [[DATE]]<br>You Are: [[USER]] [ <a href=\"[[URL]]?action=login\">Login</a> | <a href=\"[[URL]]?action=newUser\">New User</a> ]</body>\n</html>";
 	}
 
 
@@ -158,6 +161,7 @@ function page($content){
 	$out = preg_replace("/\[\[URL\]\]/",$_SERVER['REDIRECT_URL'], $out);
 	$out = preg_replace("/\[\[BASE\]\]/",$base, $out);
 	$out = preg_replace("/\[\[USER\]\]/",$_EXTRAS['me'], $out);
+	$out = preg_replace("/\[\[AUTH\]\]/",$_EXTRAS['auth'], $out);
 	$out = preg_replace("/\[\[NEARBY\]\]/",textile(menu($_EXTRAS['nearby'],"nearby")), $out);
 	return $out;
 
@@ -332,6 +336,5 @@ function user($wiki, $user){
 	
 	return $content;	
 }
-
 
 ?>
