@@ -18,9 +18,12 @@ $Id$
 
 
 	$Log$
+	Revision 1.18  2004/10/22 13:56:08  aquarion
+	* Fixed Stuff
+
 	Revision 1.17  2004/09/05 10:16:48  aquarion
 	Moved versions and edit this page to templates
-
+	
 	Revision 1.16  2004/08/29 17:25:08  aquarion
 	Install:
 	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
@@ -305,28 +308,79 @@ function recent($wiki){
 	}
 	
 	$recent = $dataSource->viewRecent($wiki);
-	foreach ($recent as $row){
-		$line = date("r",$row['created'])." - \"".$row['name']."\":$base/".$row['name']." - \"".$row['creator']."\":$base/~".$row['creator'];
-		if ($row['comment']){
-			$line .= " : ".$row['comment'];
+	
+	$last = "";
+	$count = 1;
+
+	foreach ($recent as $index => $row){
+		
+		if ($recent[$index+1]['name'] == $row['name']){
+			$count++;
+		} else {
+			$line = date("r",$row['created'])." - \"".$row['name']."\":$base/".$row['name']." ";
+			
+			if ($count != 1){
+				$line .= "x".$count." changes ";
+			}
+
+			$line .="- \"".$row['creator']."\":$base/~".$row['creator'];
+			if ($row['comment']){
+				$line .= " : ".$row['comment'];
+			}
+
+			$out .= "* ".$line." [ <a href=\"".$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
+			." <a href=\"".$base."/".$row['name']."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the newest revision\">Diff</a> ]\n";
+
+			// Data for RSS feed
+			// Data is of form array(url, title, description, date);
+			$data[] = array(
+				$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision'],
+				$row['name'],
+				$row['comment'],
+				$row['created']
+			);
+			$count = 1;
 		}
 
-		$out .= "* ".$line." [ <a href=\"".$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
-		." <a href=\"".$base."/".$row['name']."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the newest revision\">Diff</a> ]\n";
 
-		// Data for RSS feed
-		// Data is of form array(url, title, description, date);
-		$data[] = array(
-			$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision'],
-			$row['name'],
-			$row['comment'],
-			$row['created']
-		);
+		$last = $row['name'];
 
 	}
 
 	$_EXTRAS['data'] = $data;
 	return $out;
+}
+
+function author($author){
+	global $dataSource;
+	global $_EXTRAS;
+	global $_CONFIG;
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+	} else {
+		$base = $_CONFIG['base']."/".$dataSource->wiki;
+	}
+	
+	$author = $dataSource->searchAuthor($author);
+	
+	$count = 1;
+	
+	foreach ($author as $index => $row){
+		if ($author[$index+1]['name'] == $row['name']){
+			$count++;
+		} else {
+			$line .= "* ".date("r",$row['created'])." - ";
+			if ($count != 1){
+				$line .= $count." consecutive changes to ";
+			}	
+			$line .="<a href=\"".$base."/".$row['name']."\">".$row['name']."</a>\n";
+			$count = 1;
+		}
+	}
+
+	return $line;
+
 }
 
 ?>

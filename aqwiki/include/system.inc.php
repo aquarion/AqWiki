@@ -15,10 +15,13 @@
 	$Id$
 
 	$Log$
+	Revision 1.15  2004/10/22 13:56:08  aquarion
+	* Fixed Stuff
+
 	Revision 1.14  2004/09/29 10:19:34  aquarion
 	* Use better textile if available
 	* Fix links in RSS feeds
-
+	
 	Revision 1.13  2004/09/05 10:16:48  aquarion
 	Moved versions and edit this page to templates
 	
@@ -402,6 +405,56 @@ function break_string($string_to_break, $length, $highlight=false) {
         preg_replace("/($highlight)/i", "<span class=\"searchword\">\\1</span>",$return);
     }
     return $return; 
+}
+
+function parse_ini_str($Str,$ProcessSections = TRUE) {
+   $Section = NULL;
+   $Data = array();
+   if ($Temp = strtok($Str,"\r\n")) {
+     do {
+         switch ($Temp{0}) {
+           case ';':
+           case '#':
+               break;
+           case '[':
+               if (!$ProcessSections) {
+                 break;
+               }
+               $Pos = strpos($Temp,'[');
+               $Section = substr($Temp,$Pos+1,strpos($Temp,']',$Pos)-1);
+               $Data[$Section] = array();
+               break;
+         default:
+           $Pos = strpos($Temp,'=');
+           if ($Pos === FALSE) {
+               break;
+           }
+		   $Data[$Section];
+
+		   $value = trim(substr($Temp,$Pos+1),' "');
+		   $field = trim(substr($Temp,0,$Pos));
+
+			$true = array("true", "yes", "ja", "True", "Yes", "Y", "y");
+			$false = array("false", "no", "nein", "False", "No", "N", "n"); 
+
+		   if (in_array($value, $false)){
+			  # echo "Set $Section $field false<br>";
+				$value = false;
+		   } elseif (in_array($value, $true)) {
+				$value = true;
+		   }
+
+           if ($ProcessSections) {
+               $Data[$Section][$field] = $value;
+           }
+           else {
+               $Data[$field] = $value;
+           }
+           break;
+         }
+     } while ($Temp = strtok("\r\n"));
+   }
+   return $Data;
 }
 
 ?>

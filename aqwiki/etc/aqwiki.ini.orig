@@ -2,7 +2,7 @@
 ; AqWiki config
 ; 
 
-db = "mysql://username:password@host/databaseName"
+db = "mysql://aquarion:halibutabrahms@localhost/klind"
 
 ;base = ""
 ; Base contains that path relative to the site root that aqWiki runs in,

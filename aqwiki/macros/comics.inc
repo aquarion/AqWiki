@@ -65,7 +65,7 @@ function niceTime($time, $shortform = false){
 
 }
 
-$days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "All");
+$days = array("sun", "mon", "tue", "wed", "thur", "fri", "sat", "all");
 
 if ($_GET['day']){
 	$day = $_GET['day'];
@@ -75,32 +75,34 @@ if ($_GET['day']){
 
 echo "Wk".date("W\/D")."\n\n";
 
-$data = $dataSource->getContent("comicsData");
+$comic = parse_ini_str($dataSource->getContent("comicsData"), true);
 
 #echo $data;
 
-if ($data){
-	eval($data);
-} else {
-	$data = "comicsData";
-}
+#if ($data){
+#	eval($data);
+#} else {
+#	$data = "comicsData";
+#}
+
 
 if (is_array($comic)){
-	foreach ($comic as $strip){
+	$todays = array();
+	foreach ($comic as $name => $strip){
 		if ($_GET['day'] == 7){
-			if ($strip[$day]){
-				$strip["name"] .= "(*)";
-			}
-			$todays[$strip["name"]] =  "* \"".$strip["name"]."\":".$strip["url"];
+			#if ($strip[$day]){
+			#	$name .= "(*)";
+			#}
+			$todays[$name] =  "* \"".$name."\":".$strip["url"];
 		} else {
-			if ($strip[$day]){
+			if ($strip[$days[$day]] == true){
 				if ($strip["year"]){
 				}
 				if ((isset($strip["hiatus"]) && strtotime($strip["hiatus"]) > time())){
-					$todays[$strip["name"]] = "* ".$strip["name"]."";# [<a href=\"".$strip["url"]."\">H</a>]\n";
-					$todays[$strip["name"]] .= " (For ".nicetime(strtotime($strip["hiatus"]),true).")";
+					$todays[$name] = "* ".$name."";# [<a href=\"".$strip["url"]."\">H</a>]\n";
+					$todays[$name] .= " (For ".nicetime(strtotime($strip["hiatus"]),true).")";
 				} else {
-					$todays[$strip["name"]] =  "* \"".$strip["name"]."\":".$strip["url"];
+					$todays[$name] =  "* \"".$name."\":".$strip["url"];
 					$short .=  "\".\":".$strip["url"]." ";
 				}
 			}
@@ -109,7 +111,7 @@ if (is_array($comic)){
 	ksort($todays);
 	echo implode("\n",$todays);
 } else {
-	echo "Comics data not array. (<pre>$data</pre>)";
+	echo "((comicsData)) not valid";
 }
 //echo "<ul>\n";
 
