@@ -15,10 +15,13 @@
 	$Id$
 
 	$Log$
+	Revision 1.21  2004/10/22 13:56:08  aquarion
+	* Fixed Stuff
+
 	Revision 1.20  2004/09/29 15:11:19  aquarion
 	Fixing formatting bug (Links at the very end of the
 		text were not being recognised)
-
+	
 	Revision 1.19  2004/09/29 10:49:50  aquarion
 	+ Fixed character encoding bugs
 	
@@ -94,7 +97,7 @@ function process($text, $wiki){
 	global $_EXTRAS;
 	global $_CONFIG;
 
-	$text .= "\n\n";
+	$text = $text."\n\n";
 
 	if ($_CONFIG['oneWiki']){
 		$base = $_CONFIG['base'];
@@ -155,7 +158,7 @@ function process($text, $wiki){
 	// Search for User
 	preg_match_all("/\[\[ALLBY\|(.*?)\]\]/", $text, $matches);
 	foreach($matches[0] as $index => $match){
-		$result = $dataSource->searchAuthor($matches[1][$index]);
+		$result = author($matches[1][$index]);
 		$text = preg_replace("#".preg_quote($match,"#")."#",$result,$text);
 		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
@@ -523,7 +526,7 @@ function wiki($wiki, $article){
 			}
 
 			if ($text){
-				$_EXTRAS['textarea'] = $text;
+				$_EXTRAS['textarea'] =  htmlentities($text);
 			} elseif (!$dataSource->pageExists($article)){
 				$_POST['comment'] = "Start of a brand new world";
 				$_EXTRAS['textarea'] = "";
@@ -533,6 +536,7 @@ function wiki($wiki, $article){
 			
 			if ($form){
 				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\">\n";
+				$out .= "<p>You should read the ((help)). If you are having problems with the formatting, post it and add a note explaining the problem to ((formattingProblems)) and I'll dive in and fix it. If you believe you've found a bug in the wiki software, post your problem to \"this wiki page\":http://www.gkhs.net/aqwikiBug and I'll dive in and fix that too.</p>\n";
 				$out .= "<label for=\"creator\">Author</label>\n";
 				$out .= $_EXTRAS['me']."<br>\n";
 				$out .= "<label for=\"content\">Content</label>\n";
