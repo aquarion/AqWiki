@@ -436,19 +436,15 @@ function wiki($wiki, $article){
 					$form = false;
 			}
 
-
 			if ($text){
 				$_EXTRAS['textarea'] = $text;
 			} elseif (!$dataSource->pageExists($article)){
+				$_POST['comment'] = "Start of a brand new world";
 				$_EXTRAS['textarea'] = "";
 			} else {
 				$_EXTRAS['textarea'] = htmlentities(stripslashes($dataSource->getContent($article)));
 			}
 			
-			if ($row['content'] == ""){
-				$_POST['comment'] = "Start of a brand new world";
-			}
-
 			if ($form){
 				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\">\n";
 				$out .= "<label for=\"creator\">Author</label>\n";
@@ -485,7 +481,7 @@ function wiki($wiki, $article){
 				$content[2] = $row['content']."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
 				$content[3] = $row['creator'];
 				$content[4] = date("r",$row['created']);
-				$out = "\n\n*Versions:*\n";
+				$out = "\n<div id=\"revisions\">\n*Versions:*\n";
 				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
@@ -508,6 +504,7 @@ function wiki($wiki, $article){
 						break;
 					}
 				}
+				$out .= "</div>";
 				$content[2] .= $out;
 			}
 	}
