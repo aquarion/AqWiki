@@ -296,8 +296,8 @@ function wiki($wiki, $article){
 			$text = false;
 			switch ($_POST['submit']){
 				case "Preview":
-					$out = "<blockquote>".$_POST['content']."</blockquote>\n";
-					$text = $_POST['content'];
+					$out = $_POST['content'];
+					$text = stripslashes($_POST['content']);
 					break;
 
 				case "Spell Check":
