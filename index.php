@@ -15,12 +15,17 @@
 	$Id$
 
 	$Log$
+	Revision 1.13  2004/08/29 20:27:11  aquarion
+	* Cleaning up auth system
+	+ restrictNewPages configuration option
+	+ Restrict usernames (Don't contain commas or be 'register')
+
 	Revision 1.12  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
 	+ Config examples
 	+ Install guide
-
+	
 	Revision 1.11  2004/08/12 19:53:23  aquarion
 	* Fixed config directive defaults
 	* Fixed absolute URIs on RSS feeds
@@ -68,7 +73,9 @@ $DEBUG = array();
 $_CONFIG = array(
 	'db' => false, // Databasy goodness
 	'base' => '',
-	'host' => "http://".$_SERVER['SERVER_NAME']
+	'host' => "http://".$_SERVER['SERVER_NAME'], // 
+	'restrictNewPages' => false,
+	'reservedUsers' => array("register")
 );
 
 
@@ -200,21 +207,9 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 }
 
 
-if($_EXTRAS['reqAuth']){
+if($_EXTRAS['reqUser']){
 	debug("Requiring auth ".$_EXTRAS['reqAuth']);
-	switch ($_EXTRAS['reqAuth']){
-		case "user":
-			doAuth($_EXTRAS['reqUser']);
-			break;
-
-		case "group":
-			doAuth(explode(",",$_EXTRAS['reqUsers']));
-			break;
-
-		case "register":
-			doAuth("register");
-			break;
-	}
+	doAuth($_EXTRAS['reqUser'], "enter");
 }
 
 echo page($content);

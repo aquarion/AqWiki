@@ -15,12 +15,17 @@
 	$Id$
 
 	$Log$
+	Revision 1.12  2004/08/29 20:27:12  aquarion
+	* Cleaning up auth system
+	+ restrictNewPages configuration option
+	+ Restrict usernames (Don't contain commas or be 'register')
+
 	Revision 1.11  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
 	+ Config examples
 	+ Install guide
-
+	
 	Revision 1.10  2004/08/13 21:01:43  aquarion
 	* Fixed diff to make it work with the new data abstraction layer
 	
@@ -52,8 +57,10 @@ function panic($area, $error, $details){
 	echo "<h2>$area</h2>$error<p>$details</p>";die();
 }
 
-function doAuth($requirement){
+function doAuth($requirement, $action = "access this"){
 	global $dataSource;
+
+	debug("You have to be: ".$requirement." to ".$action);
 
 	if ($_GET['action'] == "login"){
 		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
@@ -62,13 +69,16 @@ function doAuth($requirement){
 	} else {
 		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	}
+
+
 	$notAuth = true;
-	if (is_array($requirement)){
-		$req_message = "member of the group allowed to access this";
+	if (strstr($requirement,',')){
+		$requirement = explode(",",$requirement);
+		$req_message = "member of the group allowed to ".$action;
 		if (in_array(strtolower($user['username']), $requirement)){
 			$notAuth = false;
 		} elseif ($user) {
-			$notAuth = "Your user (".$user['username'].") isn't allowed in";
+			$notAuth = "Your user (".$user['username'].") isn't allowed to ".$action;
 		}
 	} elseif($requirement == "register"){
 		$req_message = "registered user";
@@ -79,11 +89,11 @@ function doAuth($requirement){
 		}
 	
 	} else {
-		$req_message = "the person (".$requirement.") allowed to access this";
+		$req_message = "the person (".$requirement.") allowed to ".$action;;
 		if ($user['username'] == $requirement){
 			$notAuth = false;
 		} elseif ($user) {
-			$notAuth = "Your user (".$user['username'].") isn't allowed to do this";
+			$notAuth = "Your user (".$user['username'].") isn't allowed to ".$action;
 		} else {
 			$notAuth = $user['username']." Not a valid user";
 		}
@@ -106,7 +116,7 @@ function doAuth($requirement){
 }
 
 function menu($items,$class="", $id=""){
-
+	
 	//Menu, Takes an array of items:
 	// array("name" -> "Display Name", "link" -> "Display link" [, "title" => "Tooltip Text"]
 	// and displays it as a list, with associated class. All the magic to put the brackets and

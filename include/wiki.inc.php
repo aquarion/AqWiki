@@ -15,6 +15,11 @@
 	$Id$
 
 	$Log$
+	Revision 1.16  2004/08/29 20:27:12  aquarion
+	* Cleaning up auth system
+	+ restrictNewPages configuration option
+	+ Restrict usernames (Don't contain commas or be 'register')
+
 	Revision 1.15  2004/08/29 17:25:08  aquarion
 	Install:
 	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
@@ -35,7 +40,7 @@
 	   * After a sucessful posting, system now redirects you to the new
 	   	entry, meaning that hitting "refresh" after you've submitted
 		an entry doesn't make it submit it again.
-
+	
 	Revision 1.14  2004/08/15 16:04:03  aquarion
 	+ Fix bugs 1009244, 1009268 & 1009266
 	+ Fixed other things
@@ -427,6 +432,10 @@ function wiki($wiki, $article){
 				$errors = array();
 				if ($_POST['username'] == ""){
 					$errors[] = "Username cannot be blank";
+				} elseif(strstr($_POST['username'],",")){
+					$errors[] = "Username cannot contain commas";
+				} elseif(in_array($_POST['username'], $_EXTRAS['reservedUsers'])){
+					$errors[] = "Username cannot contain commas";
 				} elseif (!$dataSource->unique("users", "username", $_POST['username'])){
 					$errors[] = "Username must be unique";
 				}	
@@ -503,12 +512,13 @@ function wiki($wiki, $article){
 
 
 			if($_EXTRAS['reqEdit']){
-				doAuth($_EXTRAS['reqEdit']);
-			} elseif ($_EXTRAS['reqEdits']){
-				doAuth(explode(",",$_EXTRAS['reqEdits']));
+				doAuth($_EXTRAS['reqEdit'], "edit a page");
 			}
 
 
+			if($_EXTRAS['restrictNewPages']){
+				doAuth($_EXTRAS['restrictNewPages'], "create a new page");
+			}
 
 			$form = true;
 			$text = false;
@@ -601,7 +611,16 @@ function wiki($wiki, $article){
 
 		default:
 			if (!$dataSource->pageExists($article)){
-				$content[2] = "This page doesn't exist yet, Would you like to create it?\n\n\"Go On Then\":".$url."?action=edit";
+				if ($_EXTRAS['restrictNewPages']){
+					if ($_EXTRAS['restrictNewPages'] == "register"){
+						$message = "any registered user";
+					} else {
+						$message = "only certain users";
+					}
+					$content[2] = "This page doesn't exist yet. ".$message." can create new pages. Do you want to do so?\n\n\"Go On Then\":".$url."?action=edit";
+				} else {
+					$content[2] = "This page doesn't exist yet, Would you like to create it?\n\n\"Go On Then\":".$url."?action=edit";
+				}
 			} else {
 				$_EXTRAS['nearby'] = $dataSource->nearby($article);
 	
