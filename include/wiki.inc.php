@@ -15,11 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.18  2004/09/05 10:16:48  aquarion
+	Moved versions and edit this page to templates
+
 	Revision 1.17  2004/08/30 01:26:00  aquarion
 	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
 	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
 	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
-
+	
 	Revision 1.16  2004/08/29 20:27:12  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
@@ -287,50 +290,6 @@ function wiki($wiki, $article){
 	switch($_GET['action']){
 		case "viewrev":
 
-/*			if(!$_GET['id']){
-				die("Parameters incorrect");
-			}
-			$sql = getSQL($wiki, $article, "and revision.revision = ".$_GET['id']);
-			$result = $db->query($sql);
-			if (DB::isError($result)) {
-				panic("database",$result->getMessage(), $sql);
-			}
-			if ($result->numRows() == 0){
-				$content[2] = "That ID Is not related to this page";
-			} else {
-				$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
-				$content[2] = $row['content'];
-				$content[3] = $row['creator'];
-				$content[4] = date("r",$row['created']);
-
-				$sql = getSQL($wiki, $article);
-				$result = $db->query($sql);
-				if (DB::isError($result)) {
-					panic("database",$result->getMessage(), $sql);
-				}
-				
-				$out = "\n\nh2. Versions:\n";
-				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
-					if ($row['comment']){
-						$line .= " : ".$row['comment'];
-					}
-				$out .= "* ".$line." [ <a href=\"".$url."\" title=\"View this revision\">View</a> |"
-						." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."&amp;to=".$_GET['id']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
-
-				while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-					$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
-					if ($row['comment']){
-						$line .= " : ".$row['comment'];
-					}
-					if ($_GET['id'] != $row['revision']){
-						$out .= "* ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
-						." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."&amp;to=".$_GET['id']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
-					} else {
-						$out .= "* ".$line." [Current]\n";
-					}
-				}
-				$content[2] .= $out;
-			}*/
 			if(!$_GET['id']){
 				die("Parameters incorrect");
 			}
@@ -347,12 +306,6 @@ function wiki($wiki, $article){
 			$content[3] = $row['creator'];
 			$content[4] = date("r",$row['created']);
 			$out = "\n<div id=\"revisions\">\n*Versions:*\n";
-
-			/*$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
-				if ($row['comment']){
-					$line .= " : ".$row['comment'];
-				}
-			$out .= "# ".$line." [ Current ]\n";*/
 
 			$limit = 4;
 			$current = 0;
@@ -393,13 +346,6 @@ function wiki($wiki, $article){
 			
 			$_EXTRAS['textarea'] = $dataSource->diff($article, $_GET['from'], $_GET['to']);
 			$content[2] .= "[[TEXTAREA]]";
-
-			break;
-
-		case "src":
-			
-			$_EXTRAS['textarea'] = htmlspecialchars($dataSource->getContent($article));
-			$content[2] .= "<pre>[[TEXTAREA]]</pre>.\"Normal\":$article";
 
 			break;
 
@@ -614,15 +560,17 @@ function wiki($wiki, $article){
 					$url = $base."/".$article;
 					header("location: ".$url);	
 				}
-				$content[2] = $row['content']."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
+				$content[2] = $row['content'];
+
 				$content[3] = $row['creator'];
 				$content[4] = date("r",$row['created']);
-				$out = "\n<div id=\"revisions\">\n*Versions:*\n";
+
+				$_EXTRAS['versions'] = "\n<div id=\"revisions\">\n*Versions:*\n";
 				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
 					}
-				$out .= "# ".$line." [ Current ]\n";
+				$_EXTRAS['versions'] .= "# ".$line." [ Current ]\n";
 
 				$limit = 4;
 				$current = 0;
@@ -632,15 +580,15 @@ function wiki($wiki, $article){
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
 					}
-					$out .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
+					$_EXTRAS['versions'] .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
 					." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
 					$current++;
 					if ($current >= $limit && $_GET['action'] != "allrev"){
-						$out .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
+						$_EXTRAS['versions'] .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
 						break;
 					}
 				}
-				$out .= "</div>";
+				$_EXTRAS['versions'] .= "</div>";
 				$content[2] .= $out;
 			}
 	}
