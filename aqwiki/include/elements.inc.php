@@ -10,9 +10,13 @@ $Id$
 
 
 	$Log$
+	Revision 1.9  2004/07/02 19:23:50  aquarion
+	* Fixed Indexing bug
+	* Fixed debug output
+
 	Revision 1.8  2004/06/28 16:40:11  aquarion
 	Added some files that missed the last commit, fixed a couple of "oneWiki" bugs
-
+	
 	Revision 1.7  2004/06/25 15:07:13  aquarion
 	* various fixes resulting from the abstraction of the data layer.
 	
@@ -170,6 +174,12 @@ function index(){
 	$alphabet = range('A', 'Z');
 
 	$return = array();
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+	} else {
+		$base = $_CONFIG['base']."/".$dataSource->wiki;
+	}
 	
 
 	$listOfPages = $dataSource->listOfPages();
@@ -180,7 +190,7 @@ function index(){
 			if ($row['name'][0] != $now){
 				$now = strtoupper($row['name'][0]);
 			}
-			$link = $_CONFIG['base']."/".$dataSource->wiki."/".$row['name'];
+			$link = $base."/".$row['name'];
 			$return[$now][] = array('name' => $row['name'], 'link' => $link);
 		}
 	} else {
