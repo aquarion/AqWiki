@@ -100,7 +100,7 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	// get Wiki Front Page
 	if ($request[1]){
 		$_EXTRAS['current'] = $request[1];
-		debug("Wiki page ".$match);
+		debug("Wiki page ".$request[1]);
 	} else {
 		$_EXTRAS['current'] = "frontPage";
 		debug("User page blank, going for frontPage");
