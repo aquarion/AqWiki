@@ -1,4 +1,4 @@
-<?php
+<?PHP
 /*******************************************************************************
 	AqWiki
 ********************************************************************************
@@ -11,25 +11,33 @@
 
 *******************************************************************************/
 require_once 'DB.php';
-require_once "include/system.inc.php"; // How to interact with the system
-require_once "include/wiki.inc.php"; // How to display Wiki pages
-require_once "include/elements.inc.php"; // Things to put in Wiki Pages
-require_once "include/textile.inc"; // How to format your world.
+require_once 'include/system.inc.php'; // How to interact with the system
+require_once 'include/wiki.inc.php'; // How to display Wiki pages
+require_once 'include/elements.inc.php'; // Things to put in Wiki Pages
+require_once 'include/textile.inc'; // How to format your world.
 
 
 $_CONFIG = array(
 	'db' => false, // Databasy goodness
-	'base' => ""
+	'base' => ''
 );
 
-$_CONFIG = parse_ini_file("etc/aqwiki.ini", true);
+$_CONFIG = parse_ini_file('etc/aqwiki.ini', true);
 
 #$url = preg_replace("/".preg_quote($_CONFIG['base'],"/")."/","",$HTTP_SERVER_VARS['REDIRECT_URL']);
 $url = parse_url($HTTP_SERVER_VARS['REDIRECT_URL']); // Much better :-)
 
-$request = explode("/",$url['path']);
-array_shift($request);
+if ($_CONFIG['base']){
+	$url['path'] = preg_replace("/".preg_quote($_CONFIG['base'],"/")."/","",$url['path']);
+}
 
+$url['path'] = trim($url['path'],"/");
+
+$request = explode('/',$url['path']);
+
+if ($_CONFIG['oneWiki']){
+	array_unshift($request,$_CONFIG['oneWiki']);
+}
 
 /* Send all get & post variables to an array called "Extras", which gets used lots. It's also a way to get at post, get and internal variables from inside macros, also, vice versa */
 
@@ -37,8 +45,8 @@ $_EXTRAS = $_REQUEST;
 
 /* Wiki configuation files are in etc/ with the template data */
 
-if(file_exists("etc/".$request[0].".rc.php")){
-	require_once("etc/".$request[0].".rc.php");
+if(file_exists('etc/'.$request[0].'.rc.php')){
+	require_once('etc/'.$request[0].'.rc.php');
 }
 
 
@@ -106,16 +114,31 @@ if ($_SERVER['PHP_AUTH_USER']){
 if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	$content = user($request[0],$match[1]);
 	$_EXTRAS['current'] = $request[1];
-} elseif ($request[0] && $request[1]){
-	// get Wiki Entry
-	$_EXTRAS['current'] = $request[1];
-	$content = wiki($request[0],$request[1]);
 } elseif ($request[0]) {
 	// get Wiki Front Page
-	$content = wiki($request[0],"frontPage");
-	$_EXTRAS['current'] = "frontPage";
+	if ($request[1]){
+		$_EXTRAS['current'] = $request[1];
+	} else {
+		$_EXTRAS['current'] = "frontPage";
+	}
+	// get Wiki Entry
+	if ($_CONFIG['newwikis'] != true){
+
+		if ( in_array($request[0], getWikis(true) ) ){
+			$content = wiki($request[0],$_EXTRAS['current']);
+		} else {
+			$content = array(
+				"page",
+				"Not a valid Wiki",
+				"That (".$request[0].") not a Wiki I am aware of, and current config forbids creation of arbitrary new wikis",
+				"Aquarion (Admin)",
+				date("r"));
+		}
+	} else {
+		$content = wiki($request[0],$_EXTRAS['current']);
+	}
 } else {
-	$wikis = getWikis();
+	$listOfwikis = getWikis();
 	while ($row = $wikis) {
 		$out .= "# <a href=\"".$row[0]."\">".$row[0]."</a>, ".$row[1]." pages\n";
 	}
