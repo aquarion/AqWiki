@@ -8,13 +8,17 @@
 	$Id$
 
 	$Log$
+	Revision 1.11  2004/08/12 19:53:23  aquarion
+	* Fixed config directive defaults
+	* Fixed absolute URIs on RSS feeds
+
 	Revision 1.10  2004/08/12 19:37:52  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
 	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
 	* Fixed Recent to cope with oneWiki format
 	+ added Host configuation directive
-
+	
 	Revision 1.9  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
@@ -55,7 +59,7 @@ $_CONFIG = array(
 );
 
 
-$_CONFIG = parse_ini_file('etc/aqwiki.ini', true);
+$_CONFIG = array_merge($_CONFIG, parse_ini_file('etc/aqwiki.ini', true));
 
 #$url = preg_replace("/".preg_quote($_CONFIG['base'],"/")."/","",$HTTP_SERVER_VARS['REDIRECT_URL']);
 $url = parse_url($HTTP_SERVER_VARS['REDIRECT_URL']); // Much better :-)
