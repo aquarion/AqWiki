@@ -70,10 +70,16 @@ if (DB::isError($db)) {
     panic("MySQL", "Error",$db->getMessage());
 }
 
-
+if ($_GET['action'] == "relogin") {
+	$_SERVER['PHP_AUTH_USER'] = false;
+	$_SERVER['PHP_AUTH_PW'] = false;
+	$url = parse_url($_SERVER['REQUEST_URI']);
+	$url['query'] = "?action=login";
+	header("location: ".implode("", $url));
+}
 
 if ($_GET['action'] == "login"){
-	if (!$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])){
+	/*if (!$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])){
 	  // Bad or no username/password.
 	  // Send HTTP 401 error to make the
 	  // browser prompt the user.
@@ -86,7 +92,8 @@ if ($_GET['action'] == "login"){
 	} else {
 		setcookie ("me", $_SERVER['PHP_AUTH_USER'],time()+3600000);
 		setcookie ("password", $_SERVER['PHP_AUTH_PW'],time()+3600000);
-	}
+	}*/
+	doAuth("register");
 }
 
 if ($_COOKIE['me'] && $_COOKIE['password']){
@@ -100,7 +107,7 @@ if ($_COOKIE['me'] && $_COOKIE['password']){
 
 if ($_SERVER['PHP_AUTH_USER']){
 	$_EXTRAS['me'] = $_SERVER['PHP_AUTH_USER'];
-	$_EXTRAS['auth'] = "user";
+	$_EXTRAS['auth'] = "username/password";
 	$_EXTRAS['id'] = $user['id'];
 } elseif ($_COOKIE['me']){
 	$_EXTRAS['me'] = $_COOKIE['me'];
@@ -124,7 +131,8 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	// get Wiki Entry
 	if ($_CONFIG['newwikis'] != true){
 
-		if ( in_array($request[0], getWikis(true) ) ){
+		#if ( array_key_exists($request[0], getWikis(true) ) ){
+		if ( striarray($request[0], getWikis(true) ) ){
 			$content = wiki($request[0],$_EXTRAS['current']);
 		} else {
 			$content = array(
@@ -139,7 +147,8 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	}
 } else {
 	$listOfwikis = getWikis();
-	while ($row = $wikis) {
+
+	foreach ($listOfwikis as $row) {
 		$out .= "# <a href=\"".$row[0]."\">".$row[0]."</a>, ".$row[1]." pages\n";
 	}
 	$content = array(
@@ -158,7 +167,7 @@ if($_EXTRAS['reqAuth']){
 			break;
 
 		case "group":
-			doAuth($_EXTRAS['reqUsers']);
+			doAuth(explode(",",$_EXTRAS['reqUsers']));
 			break;
 
 		case "register":
@@ -173,5 +182,5 @@ echo page($content);
 
 // close conection
 $db->disconnect();
-?>
 
+?>

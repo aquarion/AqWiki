@@ -70,41 +70,76 @@ function getContent($wiki, $article){
 
 
 function doAuth($requirement){
-	$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
-	$auth = false;
+	if ($_GET['action'] == "login"){
+		$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+	} elseif ($_COOKIE['me'] && $_COOKIE['password']){
+		$user = validate_user($_COOKIE['me'], $_COOKIE['password']);
+	} else {
+		$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+	}
+	$notAuth = true;
 	if (is_array($requirement)){
-		if (in_array($user['username'], $requirement)){
-			$auth = true;
+		$req_message = "member of the group allowed to access this";
+		if (in_array(strtolower($user['username']), $requirement)){
+			$notAuth = false;
+		} elseif ($user) {
+			$notAuth = "Your user (".$user['username'].") isn't allowed in";
 		}
-	} elseif($requirement = "register"){
+	} elseif($requirement == "register"){
+		$req_message = "registered user";
 		if ($user){
-			$auth = true;
+			$notAuth = false;
+		} else {
+			$notAuth = " Not a valid username/password";
 		}
 	
 	} else {
+		$req_message = "the person (".$requirement.") allowed to access this";
 		if ($user['username'] == $requirement){
-			$auth = true;
+			$notAuth = false;
+		} elseif ($user) {
+			$notAuth = "Your user (".$user['username'].") isn't allowed to do this";
+		} else {
+			$notAuth = $user['username']." Not a valid user";
 		}
 	}
-	if ($auth){
+	if (!$notAuth){
 		setcookie ("me", $_SERVER['PHP_AUTH_USER'],time()+3600000);
 		setcookie ("password", $_SERVER['PHP_AUTH_PW'],time()+3600000);
 	} else {
 	  // Bad or no username/password.
 	  // Send HTTP 401 error to make the
 	  // browser prompt the user.
-	  header("WWW-Authenticate: " .
+	  header("WWW-AUTHenticate: " .
 			 "Basic realm=\"".$request[0]." Logon: " .
-			 "Enter owner's username and password " .$_EXTRAS['reqUser'] .
+			 "Please log in as  ".$req_message .
 			 " for access.\"");
 		header("HTTP/1.0 401 Unauthorized");
-		print_r($user);
-		die("Really Not authorised");
+		die($notAuth);
 		 // Display message if user cancels dialog
 	}
 }
 
+function isUnique($table, $field, $value, $changeID = false){
+	global $db;
+	if (is_String($value)){
+		$value = "\"$value\"";
+	}
+	$sql = "select id"
+				." from ".$table
+				." where ".$field." = ".$value;
 
+	$result = $db->query($sql);
+	if (DB::isError($result)) {
+		panic("database",$result->getMessage(), $sql);
+	}
+	if ($result->numRows() == 0){
+		return true;
+	} else {
+		return false;
+	}
+	
+}
 
 function menu($items,$class="", $id=""){
 
@@ -143,107 +178,9 @@ function menu($items,$class="", $id=""){
 	http://www.holomind.de/phpnet/diff.src.php
 	Daniel Unterberger: d.u.phpnet@holomind.de
 */
-function arr_diff( $f1, $f2 ,$show_equal=1 )
-{
 
-	$c1=0;
-	$c2=0;
-	$max1=count( $f1 );
-	$max2=count( $f2 );
-	$outcount=0;
-	$hit1="";
-	$hit2="";
+include("diff.inc");
 
-	while ( $c1<$max1 and $c2<$max2 and ($stop++)<1000 and $outcount<20 )
-	{
-		if ( trim( $f1[$c1]) == trim ( $f2[$c2])  )
-		{
-			$out.= ($show_equal==1) ?  formatline ( ($c1) , ($c2), "=", $f1[ $c1 ] ) : "";
-			if ( $show_equal==1) { $outcount++; }
-			$c1++;
-			$c2++;
-		}
-		else
-		{
-			#find matching lines on left, or right later in array
-			$b="";
-			$s1=0;
-			$s2=0;
-			$found=0;
-			$b1="";
-			$b2="";
-			$fstop=0;
-
-			#fast search in on both sides for next match.
-			while( $found==0 and ($c1+$s1<=$max1) and ($c2+$s2<=$max2) and $fstop++<10 )
-			{
-
-				#test left
-				if ( trim( $f1[$c1+$s1] ) == trim( $f2[$c2])  )
-				{
-					$found=1;
-					$s2=0;
-					$c2--;
-					$b=$b1;
-				}
-				#more
-				else
-				{
-					if ( $hit1[ ($c1+$s1)."_".($c2) ]!=1)
-					{
-						$b1.= formatline( ($c1+$s1) , ($c2), "-", $f1[ $c1+$s1 ] );
-						$hit1[ ($c1+$s1)."_".$c2 ]=1;
-					}
-				}
-
-
-
-				#test right
-				if ( trim (  $f1[$c1] )  == trim ( $f2[$c2+$s2])  )
-				{
-					$found=1;
-					$s1=0;
-					$c1--;
-					$b=$b2;
-				}
-				else
-				{
-					if ( $hit2[ ($c1)."_".($c2+$s2) ]!=1)
-					{
-						$b2.= formatline ( ($c1) , ($c2+$s2), "+", $f2[ $c2+$s2 ] );
-						$hit2[ ($c1)."_".($c2+$s2) ]=1;
-					}
-
-				 }
-
-				#search in bigger distance
-				$s1++;
-				$s2++;
-			}
-
-			#add line as different on both arrays (no match found)
-			if ( $found==0)
-			{
-				$b.= formatline ( ($c1) , ($c2), "-", $f1[ $c1 ] );
-				$b.= formatline ( ($c1) , ($c2), "+", $f2[ $c2 ] );
-			}
-			$out .= $b;
-			$outcount++; #
-
-			$c1++;
-			$c2++;
-
-		} /*endif*/
-
-	}/*endwhile*/
-
-return $out;
-}/*end func*/
-
-/* Differences between two arrays, 
-	http://www.holomind.de/phpnet/diff.src.php
-	Daniel Unterberger: d.u.phpnet@holomind.de
-*/
 function formatline( $nr1, $nr2, $stat, &$value )  #change to $value if problems
 {
 	if ( trim( $value )=="" )
@@ -337,5 +274,30 @@ class SpellChecker {
         )
         */
     }
+}
+
+// Case insenstive string search
+//	In: Needle - String to search for
+//		Haystack - Array to search in
+//	
+//	Out: 0 - Is not in array
+//		 1 - Is in array key
+//		 2 - is in Array values
+
+function striarray($needle, $haystack){
+	if (!is_array($haystack)){
+		trigger_error ( "striarray 2nd argument should be an array", E_USER_ERROR);
+	}
+	if (is_array($needle)){
+		trigger_error ( "striarray 1st argument shouldn't be an array", E_USER_ERROR);
+	}
+	foreach($haystack as $st => $raw){
+		if ($st == $needle){
+			return 1;
+		} elseif ($raw == $needle){
+			return 2;
+		}
+	}
+	return 0;
 }
 ?>
