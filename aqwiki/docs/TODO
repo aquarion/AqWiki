@@ -7,16 +7,10 @@ Install guide
 Collision detection
 	see docs/collision
 
-Add user
-	Pretty important :-)
-
-Fix formating errors
-	Beginning a page with a link doesn't currently work.
-
 Export Help
 	either [[HELP]] which loads in the text file,
 	or add the contents of [[HELP]] to the end of ?edit
 
 Convert Wiki conf to .ini
 
-Stop arbitary new wikis unless desired (ini/noNewWikis)
+Namespace the tables
