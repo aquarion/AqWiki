@@ -15,11 +15,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.14  2004/08/30 01:25:59  aquarion
+	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
+	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
+	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
+
 	Revision 1.13  2004/08/29 20:27:11  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
 	+ Restrict usernames (Don't contain commas or be 'register')
-
+	
 	Revision 1.12  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
@@ -92,8 +97,12 @@ $url['path'] = trim($url['path'],"/");
 
 $request = explode('/',$url['path']);
 
-#print_r($request);
 
+if ($_CONFIG['stripFromStart']){ // Strip this number of directories from the start
+	$request = array_slice ($request, $_CONFIG['stripFromStart']);
+}
+
+	
 if ($_CONFIG['oneWiki']){
 	array_unshift($request,$_CONFIG['oneWiki']);
 }

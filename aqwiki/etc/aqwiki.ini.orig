@@ -33,3 +33,12 @@ debug = true
 
 newwikis = true
 ;newwikis = true
+
+; Strip this many directories from the start
+; For example, in http://host.name/this/is/a/test/aqwiki_path/wiki_name/article
+; 1 would strip "this" and '3' would strip "this/is/a"
+; The only reason you would want to do this is if you're doing magic with
+; htaccess and you find that the generated path is wrong and you
+; need to trim some off. Fortunatly, so do I :-)
+
+stripFromStart = 1

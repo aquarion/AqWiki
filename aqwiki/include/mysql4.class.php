@@ -15,6 +15,11 @@
 	$Id$
 
 	$Log$
+	Revision 1.10  2004/08/30 01:26:00  aquarion
+	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
+	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
+	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
+
 	Revision 1.9  2004/08/29 17:25:08  aquarion
 	Install:
 	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
@@ -35,7 +40,7 @@
 	   * After a sucessful posting, system now redirects you to the new
 	   	entry, meaning that hitting "refresh" after you've submitted
 		an entry doesn't make it submit it again.
-
+	
 	Revision 1.8  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
@@ -141,6 +146,16 @@ class pearDB extends dataSource {
 	}
 	
 	//function: newUser(username, name, password, email) - create a new user
+
+	function newUser($username, $name, $password, $email){
+		$sql = "insert into users (username, real_name, email, password, date_creation) "
+		.' values ("'.$_POST['username'].'", "'.$_POST['name']
+			.'", "'.$_POST['email'].'", "'.$_POST['password']
+			.'", NOW())';
+
+		$this->query($sql);
+
+	}
 
 	//function: validateUser(username, password) - Check a username and password match
 	function validateUser($username, $password){
@@ -356,7 +371,7 @@ class pearDB extends dataSource {
 			.' revision.created as revised, revision.revision, max(revision.revision) as toprev'
 			.' FROM revision'
 			.' LEFT JOIN wikipage ON wikipage.page = revision.page'
-			.' WHERE content LIKE "'.$terms.'" AND wiki = "'.$this->wiki.'"'
+			.' WHERE content LIKE "%'.$terms.'%" AND wiki = "'.$this->wiki.'"'
 			.' GROUP BY wikipage.page'
 			.' HAVING revision.revision = toprev'
 			.' ORDER BY revision.revision desc';

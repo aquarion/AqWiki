@@ -15,11 +15,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.17  2004/08/30 01:26:00  aquarion
+	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
+	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
+	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
+
 	Revision 1.16  2004/08/29 20:27:12  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
 	+ Restrict usernames (Don't contain commas or be 'register')
-
+	
 	Revision 1.15  2004/08/29 17:25:08  aquarion
 	Install:
 	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
@@ -458,33 +463,9 @@ function wiki($wiki, $article){
 					$errors[] = "passwords must match";
 				}
 
-			/*mysql> describe users;
-			+---------------+------------------+-------------------+
-			| Field         | Type             | Collation         |
-			+---------------+------------------+-------------------+
-			| id            | int(10) unsigned | binary            |
-			| username      | varchar(64)      | latin1_swedish_ci |
-			| real_name     | tinytext         | latin1_swedish_ci |
-			| email         | tinytext         | latin1_swedish_ci |
-			| birthday      | date             | latin1_swedish_ci |
-			| password      | tinytext         | latin1_swedish_ci |
-			| location      | int(11)          | binary            |
-			| last_access   | timestamp        | latin1_swedish_ci |
-			| date_creation | timestamp        | latin1_swedish_ci |
-			| access_level  | int(11)          | binary            |
-			+---------------+------------------+-------------------+
-			10 rows in set (0.05 sec)
-			*/
-
 				if (count($errors) == 0){
-					$sql = "insert into users (username, real_name, email, password, date_creation) "
-						.' values ("'.$_POST['username'].'", "'.$_POST['name']
-							.'", "'.$_POST['email'].'", "'.$_POST['password']
-							.'", NOW())';
-					$result = $db->query($sql);
-					if (DB::isError($result)) {
-						panic("database",$result->getMessage(), $sql);
-					}
+
+					$dataSource->newUser($_POST['username'], $_POST['name'], $_POST['password'], $_POST['email']);
 
 					$out = "h2. New user created\n\n";
 					$out .= "Hi, ".$_POST['name'].", Welcome to this aqWiki install.\n\n";
