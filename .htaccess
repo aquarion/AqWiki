@@ -1,5 +1,5 @@
 ErrorDocument 404 /error/404
-Options +MultiViews
+Options +MultiViews +Indexes
 
 AddType text/xml rss ffkar soap tb tbrss wsdl xss
 AddType text/plain txt esf
@@ -9,7 +9,8 @@ AddType application/rdf+xml rdf
 AddType application/x-netcdf cdf
 
 RewriteEngine on
+RewriteRule     ^static(.*)$      -                  [L]
 RewriteRule   	^robots.txt$      -                  [L]
 RewriteRule	^index.php$	-	[L]
 RewriteRule	!\.(gif|jpg|png|css|misc)$	/index.php
-#RewriteRule	.*	/index.php
+RewriteRule	.*	/index.php
