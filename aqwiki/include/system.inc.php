@@ -128,7 +128,7 @@ function menu($items,$class="", $id=""){
 
 			if ($item['link']){
 				$out .= "\t* \"".$item['name']."\":";
-				$out .= $item['name']."\n";
+				$out .= $item['link']."\n";
 			} else {
 				$out .= "\t* ".$item['name']."\n";
 			}
