@@ -10,9 +10,12 @@ $Id$
 
 
 	$Log$
+	Revision 1.7  2004/06/25 15:07:13  aquarion
+	* various fixes resulting from the abstraction of the data layer.
+
 	Revision 1.6  2004/06/25 12:54:25  aquarion
 	All change, apparently. All I've done is abstracted the data layer a bit, why every file's changed I'm not quite sure...
-
+	
 
 
 
@@ -170,7 +173,7 @@ function index(){
 			if ($row['name'][0] != $now){
 				$now = strtoupper($row['name'][0]);
 			}
-			$link = $_CONFIG['base']."/".$wiki."/".$row['name'];
+			$link = $_CONFIG['base']."/".$dataSource->wiki."/".$row['name'];
 			$return[$now][] = array('name' => $row['name'], 'link' => $link);
 		}
 	} else {

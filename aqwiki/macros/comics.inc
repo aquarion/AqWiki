@@ -73,7 +73,7 @@ if ($_GET['day']){
 
 echo "Wk".date("W\/D")."\n\n";
 
-$data = getContent($wiki, "comicsData");
+$data = $dataSource->getContent("comicsData");
 
 #echo $data;
 
