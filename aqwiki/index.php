@@ -15,11 +15,15 @@
 	$Id$
 
 	$Log$
+	Revision 1.15  2004/09/29 10:19:34  aquarion
+	* Use better textile if available
+	* Fix links in RSS feeds
+
 	Revision 1.14  2004/08/30 01:25:59  aquarion
 	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
 	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
 	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
-
+	
 	Revision 1.13  2004/08/29 20:27:11  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
@@ -57,23 +61,23 @@ require_once 'include/wiki.inc.php'; // How to display Wiki pages
 require_once 'include/elements.inc.php'; // Things to put in Wiki Pages
 require_once 'include/mysql4.class.php'; // How to store your world.
 
-/* Use this :*/
-
-require_once 'include/textile.inc'; // How to format your world.
-
-
-/* Use this if you have it:*/
-
-/*require_once 'include/classTextile.php'; // How to format your world.
-
-function textile($text, $lite=''){
-	$textile = new Textile;
-	return $textile->TextileThis($text);
-}*/
-
 $_FILES['index'] = '$Revision$';
 
+/* Use this :*/
+
 $DEBUG = array();
+
+if (file_exists('include/classTextile.php')){
+        require_once 'include/classTextile.php'; // How to format your world.
+        function textile($text, $lite=''){
+                $textile = new Textile;
+                return $textile->TextileThis($text);
+        }
+        $DEBUG[] = "Using better Textile";
+} else {
+        require_once 'include/textile.inc'; // How to format your world.
+}
+
 
 $_CONFIG = array(
 	'db' => false, // Databasy goodness
@@ -161,7 +165,13 @@ if ($_SERVER['PHP_AUTH_USER']){
 	$_EXTRAS['me'] = $_COOKIE['me'];
 	$_EXTRAS['auth'] = "cookie";
 } else {
-	$_EXTRAS['me'] = $_SERVER['REMOTE_ADDR'];
+	$headers = apache_request_headers();
+	if ($headers['X-Forwarded-For']){
+		$_EXTRAS['me'] = $headers['X-Forwarded-For'];
+	} else {
+		$_EXTRAS['me'] = $_SERVER['REMOTE_ADDR'];
+	}
+	unset($headers);
 	$_EXTRAS['auth'] = "host";
 }
 
