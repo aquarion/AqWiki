@@ -446,7 +446,7 @@ function wiki($wiki, $article){
 
 }
 
-function getWikis(){
+function getWikis($quickList = false){
 	global $db;
 
 	$wikis = array();
@@ -458,7 +458,11 @@ function getWikis(){
 		panic($result->getMessage());
 	}
 	while ($row = $result->fetchRow()) {
-		$wikis[] = $row;
+		if ($quickList){
+			$wikis[] = $row[0];
+		} else {
+			$wikis[] = $row;
+		}
 	}
 
 	return $wikis;
