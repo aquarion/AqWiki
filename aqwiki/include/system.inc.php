@@ -23,59 +23,15 @@ function panic($area, $error, $details){
 	echo "<h2>$area</h2>$error<p>$details</p>";die();
 }
 
-
-function validate_user($username, $password){
-	$q = "select * from users where username=\"".$username
-		."\" and password = \"".$password."\"";
-	$r = mysql_query($q);
-	$rows = mysql_num_rows($r);
-	if ($rows == 0){
-		return false;
-	} else {
-		$row = mysql_fetch_assoc($r);
-		$name = explode(" ", $row['realname']);
-		$first = array_shift($name);
-		$rest = implode($name, " ");
-		
-		return array(
-			id => $row['id'], 
-			firstname => $first, 
-			lastname => $rest, 
-			username => $username, 
-			email => $row['email'],
-			url => $row['url']
-		);
-	}
-}
-
-function getContent($wiki, $article){
-	global $db;
-	$sql = "select revision.*"
-				."from wikipage, revision "
-				."where wikipage.wiki = \"$wiki\" and wikipage.name = \"$article\" and wikipage.page = revision.page "
-				."order by revision.created desc limit 1";
-
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	if ($result->numRows() == 0){
-		return false;
-	} else {
-		$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
-		return $row['content'];
-	}
-}
-
-
-
 function doAuth($requirement){
+	global $dataSource;
+
 	if ($_GET['action'] == "login"){
-		$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	} elseif ($_COOKIE['me'] && $_COOKIE['password']){
-		$user = validate_user($_COOKIE['me'], $_COOKIE['password']);
+		$user = $dataSource->validateUser($_COOKIE['me'], $_COOKIE['password']);
 	} else {
-		$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	}
 	$notAuth = true;
 	if (is_array($requirement)){
@@ -118,27 +74,6 @@ function doAuth($requirement){
 		die($notAuth);
 		 // Display message if user cancels dialog
 	}
-}
-
-function isUnique($table, $field, $value, $changeID = false){
-	global $db;
-	if (is_String($value)){
-		$value = "\"$value\"";
-	}
-	$sql = "select id"
-				." from ".$table
-				." where ".$field." = ".$value;
-
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	if ($result->numRows() == 0){
-		return true;
-	} else {
-		return false;
-	}
-	
 }
 
 function menu($items,$class="", $id=""){

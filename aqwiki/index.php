@@ -10,11 +10,13 @@
 	$log$
 
 *******************************************************************************/
-require_once 'DB.php';
+
 require_once 'include/system.inc.php'; // How to interact with the system
 require_once 'include/wiki.inc.php'; // How to display Wiki pages
 require_once 'include/elements.inc.php'; // Things to put in Wiki Pages
 require_once 'include/textile.inc'; // How to format your world.
+
+require_once 'include/mysql4.class.php'; // How to store your world.
 
 
 $_CONFIG = array(
@@ -52,23 +54,8 @@ if(file_exists('etc/'.$request[0].'.rc.php')){
 
 /* At this point we have everything we need */
 
-
-/*		CONNECT TO THE DATABASE			*/
-
-
-// DB::connect will return a PEAR DB object on success
-// or an PEAR DB Error object on error
-
-$db = DB::connect($_CONFIG['db']);
-
-#mysql_connect("localhost", "wiki", "wild") || die(mysql_error());
-
-
-// With DB::isError you can differentiate between an error or
-// a valid connection.
-if (DB::isError($db)) {
-    panic("MySQL", "Error",$db->getMessage());
-}
+$dataSource = new mysql4($_CONFIG['db']);
+$dataSource->wiki = $request[0];
 
 if ($_GET['action'] == "relogin") {
 	$_SERVER['PHP_AUTH_USER'] = false;
@@ -79,25 +66,11 @@ if ($_GET['action'] == "relogin") {
 }
 
 if ($_GET['action'] == "login"){
-	/*if (!$user = validate_user($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])){
-	  // Bad or no username/password.
-	  // Send HTTP 401 error to make the
-	  // browser prompt the user.
-	  header("WWW-Authenticate: " .
-			 "Basic realm=\"Offical Logon: " .
-			 "Enter your username and password " .
-			 "for access.\"");
-		header("HTTP/1.0 401 Unauthorized");
-		 // Display message if user cancels dialog
-	} else {
-		setcookie ("me", $_SERVER['PHP_AUTH_USER'],time()+3600000);
-		setcookie ("password", $_SERVER['PHP_AUTH_PW'],time()+3600000);
-	}*/
 	doAuth("register");
 }
 
 if ($_COOKIE['me'] && $_COOKIE['password']){
-	$user = validate_user($_COOKIE['me'],$_COOKIE['password']);
+	$user = $dataSource->validateUser($_COOKIE['me'],$_COOKIE['password']);
 	if (!$user){
 		header("location: ".$_SERVER['REQUEST_URI']."?action=login");
 	}
@@ -132,7 +105,7 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	if ($_CONFIG['newwikis'] != true){
 
 		#if ( array_key_exists($request[0], getWikis(true) ) ){
-		if ( striarray($request[0], getWikis(true) ) ){
+		if ( striarray($request[0], $dataSource->listOfWikis(true) ) ){
 			$content = wiki($request[0],$_EXTRAS['current']);
 		} else {
 			$content = array(
@@ -146,7 +119,7 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 		$content = wiki($request[0],$_EXTRAS['current']);
 	}
 } else {
-	$listOfwikis = getWikis();
+	$listOfwikis = $dataSource->listOfWikis();
 
 	foreach ($listOfwikis as $row) {
 		$out .= "# <a href=\"".$row[0]."\">".$row[0]."</a>, ".$row[1]." pages\n";
@@ -178,9 +151,4 @@ if($_EXTRAS['reqAuth']){
 
 
 echo page($content);
-
-
-// close conection
-$db->disconnect();
-
 ?>
