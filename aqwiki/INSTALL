@@ -7,9 +7,28 @@ then put the install directory somewhere apache can see it, fix
 "base" in the ini file to reflect it's new location, enable .htaccess
 for that directory, and hope it works.
 
-Make an SQL database:
+Textile:
+*******
 
-Currently, we require MySQL4. so:
+Formatting in AqWiki is done by Textile. By default we use the Textile2
+beta which used to be able to be downloaded here: 
+<URL:http://www.textism.com/tools/textile/ under the GPL upon whose 
+ground I stand firm. However, Tx2b does have a number of bugs (Mostly in 
+using non-ascii characters such as the UK Pound sign), so if you have the
+newer textile version in /include, it'll use that. the newer textile 
+version has not been released seperately, though, only as part of the 
+author's CMS system "Textpattern", so until it is, I'm reluctant to 
+include it with the package (or even CVS) for this. If the 
+"classTextile.php" file from Textpattern's source package is in /include, 
+however, aqWiki will use it instead of the default one, because it 
+really is far better.
+
+TextPattern is good, too, you can download it at http://www.textpattern.com/
+
+Make an SQL database:
+********************
+
+Currently, we require MySQL. so:
 
 * Enter the mysql client as a user who can create databases
 	(probably `mysql -u root`)
@@ -28,6 +47,7 @@ Currently, we require MySQL4. so:
 	problems.
 
 Put the directory somewhere Apache can see it:
+*********************************************
 
 * /var/www/aqwiki, for example. Or ~/public_html/aqwiki, but remember
 	the directory must support .htaccess files.
@@ -35,6 +55,7 @@ Put the directory somewhere Apache can see it:
 	the root of aqwiki's directory.
 
 Configure AqWiki:
+****************
 
 * edit Copy "etc/aqwiki.ini.orig" to "etc/aqwiki.ini" and edit it
 	(The file explains each stanza as it goes along)
