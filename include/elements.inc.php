@@ -201,11 +201,25 @@ function searchFor($wiki,$terms){
 	$return = array();
 	global $db;
 	global $_EXTRAS;
+	/*
+
+	TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully.
+
+	This code returns all the pages that *have ever* contained the search term, and was removed in favour of the below.
+	
 	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
 	." FROM revision"
 	." LEFT JOIN wikipage ON wikipage.page = revision.page"
 	." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-	." GROUP BY wikipage.page";
+	." GROUP BY wikipage.page"; */
+
+	/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ only */
+
+	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
+	." FROM revision"
+	." LEFT JOIN wikipage ON wikipage.page = revision.page and revision.revision = (SELECT max(r2.revision) from revision as r2 where r2.page = revision.page)"
+	." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
+	." GROUP BY wikipage.page"; 
 
 
 	$result = $db->query($sql);
