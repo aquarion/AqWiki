@@ -15,12 +15,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.14  2004/08/15 16:04:03  aquarion
+	+ Fix bugs 1009244, 1009268 & 1009266
+	+ Fixed other things
+
 	Revision 1.13  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
 	+ Config examples
 	+ Install guide
-
+	
 	Revision 1.12  2004/08/13 21:01:43  aquarion
 	* Fixed diff to make it work with the new data abstraction layer
 	
@@ -396,19 +400,19 @@ function wiki($wiki, $article){
 				$errors = array();
 				if ($_POST['username'] == ""){
 					$errors[] = "Username cannot be blank";
-				} elseif (!isUnique("users", "username", $_POST['username'])){
+				} elseif (!$dataSource->unique("users", "username", $_POST['username'])){
 					$errors[] = "Username must be unique";
 				}	
 
 				if ($_POST['email'] == ""){
 					$errors[] = "email cannot be blank";
-				} elseif (!isUnique("users", "email", $_POST['email'])){
+				} elseif (!$dataSource->unique("users", "email", $_POST['email'])){
 					$errors[] = "email must be unique";
 				}
 
 				if ($_POST['name'] == ""){
 					$errors[] = "Display Name cannot be blank";
-				} elseif (!isUnique("users", "real_name", $_POST['name'])){
+				} elseif (!$dataSource->unique("users", "real_name", $_POST['name'])){
 					$errors[] = "Display Name must be unique";
 				}
 

@@ -14,10 +14,10 @@ Currently, we require MySQL4. so:
 * Enter the mysql client as a user who can create databases
 	(probably `mysql -u root`)
 * "create database DATABASENAME" (or whatever you want to call it)
-* "grant all on aqwiki to USER@localhost identified by 'PASSWORD'"
+* "grant all on DATABASENAME to USER@localhost identified by 'PASSWORD'"
 	(Replace USER and PASSWORD with appropriate bits, obviously.)
 * "use DATABASENAME"
-* ". ./doc/tables.sql" (This is assuming you start in the directory
+* "\. ./docs/tables.sql" (This is assuming you start in the directory
 	where this file is. Otherwise replace "./doc" with the path to
 	to the docs directory of this package. If this sounds
 	complicated, paste the contents of "tables.sql" into the mysql
