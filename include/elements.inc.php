@@ -250,7 +250,8 @@ function index($wiki){
 			if ($row['name'][0] != $now){
 				$now = strtoupper($row['name'][0]);
 			}
-			$return[$now][] = array('name' => $row['name'], 'link' => $_CONFIG['base']."/".$wiki."/".$row['name']);
+			$link = $_CONFIG['base']."/".$wiki."/".$row['name'];
+			$return[$now][] = array('name' => $row['name'], 'link' => $link);
 		}
 	} else {
 		$return[][] = array('name' => "Nothing Found");
@@ -261,7 +262,7 @@ function index($wiki){
 		if ($return[$letter]){
 			$index = $letter;
 			$menu .= " | \"".$index."\":#$index";
-			$string .= "\n<a name=\"$index\"></a>\n\nh2. ".$index."\n\n";
+			$string .= "\n<a name=\"".$index."\"></a>\n\nh2. ".$index."\n\n";
 			$string .= menu($return[$letter]);
 		} else {
 			$menu .= " | ".$letter;
