@@ -18,12 +18,33 @@ $Id$
 
 
 	$Log$
+	Revision 1.16  2004/08/29 17:25:08  aquarion
+	Install:
+	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
+	   * aqwiki.ini.orig now refered to as such, rather than aqwiki.orig
+	   - Removed  CHARSET=latin1;
+	Config:
+	   * 'base' needs preceeding slash
+	Wiki:
+	   + "source" output mode (elements.inc.php)
+	   * Fixed add-user (mysql4.class.php)
+	   + Created 'mysql' datasource (for versions <4) and moved
+	   	relivant sections to it. We now support mysql4. W00t :-)
+		(mysql4.class.php - which needs rearranging and possibly
+		renaming)
+	   * Made ((-)) notation support ((~Aquarion)) urls (Possibly should
+	   	make this an ini-config option for those who don't want
+		~user urls)
+	   * After a sucessful posting, system now redirects you to the new
+	   	entry, meaning that hitting "refresh" after you've submitted
+		an entry doesn't make it submit it again.
+
 	Revision 1.15  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
 	+ Config examples
 	+ Install guide
-
+	
 	Revision 1.14  2004/08/12 19:53:23  aquarion
 	* Fixed config directive defaults
 	* Fixed absolute URIs on RSS feeds
@@ -153,6 +174,11 @@ function page($content){
 	case "rss":
 		header("Content-Type: text/xml");
 		$out = buildRSS($content);
+		break;
+
+	case "source":
+		header("Content-Type: text/plain");
+		$out = $content[2];
 		break;
 
 	default:

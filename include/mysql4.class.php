@@ -15,12 +15,33 @@
 	$Id$
 
 	$Log$
+	Revision 1.9  2004/08/29 17:25:08  aquarion
+	Install:
+	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
+	   * aqwiki.ini.orig now refered to as such, rather than aqwiki.orig
+	   - Removed  CHARSET=latin1;
+	Config:
+	   * 'base' needs preceeding slash
+	Wiki:
+	   + "source" output mode (elements.inc.php)
+	   * Fixed add-user (mysql4.class.php)
+	   + Created 'mysql' datasource (for versions <4) and moved
+	   	relivant sections to it. We now support mysql4. W00t :-)
+		(mysql4.class.php - which needs rearranging and possibly
+		renaming)
+	   * Made ((-)) notation support ((~Aquarion)) urls (Possibly should
+	   	make this an ini-config option for those who don't want
+		~user urls)
+	   * After a sucessful posting, system now redirects you to the new
+	   	entry, meaning that hitting "refresh" after you've submitted
+		an entry doesn't make it submit it again.
+
 	Revision 1.8  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
 	+ Config examples
 	+ Install guide
-
+	
 	Revision 1.7  2004/08/13 21:01:43  aquarion
 	* Fixed diff to make it work with the new data abstraction layer
 	
@@ -156,7 +177,7 @@ class pearDB extends dataSource {
 					." from ".$table
 					." where ".$field." = ".$value;
 
-		$result = $db->query($sql);
+		$result = $this->query($sql);
 		if (DB::isError($result)) {
 			panic("database",$result->getMessage(), $sql);
 		}
@@ -392,7 +413,29 @@ class pearDB extends dataSource {
 	}
 }
 
-class mysql4 extends pearDB {
+class mysql extends pearDB {
+
+	// Anything not here is provided by pearDB;
+	
+	function post($name, $content, $comment){
+
+		global $_EXTRAS;
+
+		if (!$id = $this->pageExists($name)){
+			$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$this->wiki."\", \"".$name."\", NOW(), 1)";
+			$post_res = $this->query($sql);
+			$id = mysql_insert_id();
+		}
+
+		$author = "\"".$_EXTRAS['me']."\"";
+
+		$sql  = "insert into revision (content, comment, creator, page, created) values (\"".$content."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
+
+		$this->query($sql);
+	}
+}
+
+class mysql4 extends mysql {
 
 	// Anything not here is provided by pearDB;
 	
@@ -421,23 +464,6 @@ class mysql4 extends pearDB {
 			$return[] = array('name' => "Nothing Found for $terms");
 		}
 		return "h3. Search for $terms\n".menu($return);
-	}
-
-	function post($name, $content, $comment){
-
-		global $_EXTRAS;
-
-		if (!$id = $this->pageExists($name)){
-			$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$this->wiki."\", \"".$name."\", NOW(), 1)";
-			$post_res = $this->query($sql);
-			$id = mysql_insert_id();
-		}
-
-		$author = "\"".$_EXTRAS['me']."\"";
-
-		$sql  = "insert into revision (content, comment, creator, page, created) values (\"".$content."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
-
-		$this->query($sql);
 	}
 }
 

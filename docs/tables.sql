@@ -17,7 +17,7 @@ CREATE TABLE revision (
   creator tinytext NOT NULL,
   created datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (revision)
-) TYPE=MyISAM CHARSET=latin1;
+) TYPE=MyISAM;
 
 --
 -- Table structure for table 'users'
@@ -36,7 +36,7 @@ CREATE TABLE users (
   date_creation timestamp NOT NULL,
   access_level int(11) default '0',
   PRIMARY KEY  (id)
-) TYPE=MyISAM CHARSET=latin1;
+) TYPE=MyISAM;
 
 --
 -- Table structure for table 'wikipage'
@@ -53,5 +53,5 @@ CREATE TABLE wikipage (
   origin tinytext,
   yalelock tinytext,
   PRIMARY KEY  (page)
-) TYPE=MyISAM CHARSET=latin1;
+) TYPE=MyISAM;
 
