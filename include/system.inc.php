@@ -7,11 +7,18 @@
 
 	$Id$
 
-	$log$
+	$Log$
+	Revision 1.7  2004/07/05 20:29:05  aquarion
+	* Lets try actually using _real_ CVS keywords, not words I guess at this time
+	+ [[AQWIKI]] template tag
+	+ Default template finally exists! Sing yay!
+	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
+	* Minor fixen
+
 
 *******************************************************************************/
 
-$_FILES['system'] = '$Version$';
+$_FILES['system'] = '$Revision$';
 
 function print_r_to_var($a) {
 	ob_start();

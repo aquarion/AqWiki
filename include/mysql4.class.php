@@ -8,9 +8,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.5  2004/07/05 20:29:05  aquarion
+	* Lets try actually using _real_ CVS keywords, not words I guess at this time
+	+ [[AQWIKI]] template tag
+	+ Default template finally exists! Sing yay!
+	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
+	* Minor fixen
+
 	Revision 1.4  2004/07/05 18:09:46  aquarion
 	+ clash repair, no content changed.
-
+	
 	Revision 1.3  2004/07/03 21:35:37  aquarion
 	* Updated SQL output
 	* Fixed Search function (Thanks to Tom Pike)
@@ -25,7 +32,7 @@
 
 *******************************************************************************/
 
-$_FILES['system'] = '$Version$';
+$_FILES['system'] = '$Revision$';
 
 class dataSource {
 	var $db; // Database connection link
