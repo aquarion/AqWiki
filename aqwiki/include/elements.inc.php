@@ -10,11 +10,16 @@ $Id$
 
 
 	$Log$
+	Revision 1.11  2004/07/05 18:13:38  aquarion
+	+ Updated to use textile from textpattern (less bugs) (not commited until I get a reply from Dean, sorry)
+	* Fixed misc indexing bugs
+	+ put Revisions in their own div
+
 	Revision 1.10  2004/07/03 21:35:37  aquarion
 	* Updated SQL output
 	* Fixed Search function (Thanks to Tom Pike)
 	* Added version tracking part 1/3
-
+	
 	Revision 1.9  2004/07/02 19:23:50  aquarion
 	* Fixed Indexing bug
 	* Fixed debug output
@@ -127,7 +132,12 @@ function calendar ($data, $month, $year) {
 function page($content){
 	global $_EXTRAS;
 	global $_CONFIG;
-	$base = $_CONFIG['base']."/".$content[0];
+
+	if ($_CONFIG['oneWiki']){
+		$base = $_CONFIG['base'];
+	} else {
+		$base = $_CONFIG['base']."/".$wiki;
+	}
 	/* $content is an array containing:
 			
 			[0] Name of Wiki template

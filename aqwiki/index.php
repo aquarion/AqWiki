@@ -14,10 +14,15 @@
 require_once 'include/system.inc.php'; // How to interact with the system
 require_once 'include/wiki.inc.php'; // How to display Wiki pages
 require_once 'include/elements.inc.php'; // Things to put in Wiki Pages
-require_once 'include/textile.inc'; // How to format your world.
+#require_once 'include/textile.inc'; // How to format your world.
 
+require_once 'include/classTextile.php'; // How to format your world.
 require_once 'include/mysql4.class.php'; // How to store your world.
 
+function textile($text, $lite=''){
+	$textile = new Textile;
+	return $textile->TextileThis($text);
+}
 
 $_FILES['index'] = '$Version$';
 
@@ -40,6 +45,8 @@ if ($_CONFIG['base']){
 $url['path'] = trim($url['path'],"/");
 
 $request = explode('/',$url['path']);
+
+#print_r($request);
 
 if ($_CONFIG['oneWiki']){
 	array_unshift($request,$_CONFIG['oneWiki']);
