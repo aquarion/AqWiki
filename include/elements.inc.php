@@ -10,10 +10,15 @@ $Id$
 
 
 	$Log$
+	Revision 1.10  2004/07/03 21:35:37  aquarion
+	* Updated SQL output
+	* Fixed Search function (Thanks to Tom Pike)
+	* Added version tracking part 1/3
+
 	Revision 1.9  2004/07/02 19:23:50  aquarion
 	* Fixed Indexing bug
 	* Fixed debug output
-
+	
 	Revision 1.8  2004/06/28 16:40:11  aquarion
 	Added some files that missed the last commit, fixed a couple of "oneWiki" bugs
 	
@@ -28,6 +33,7 @@ $Id$
 
 *******************************************************************************/
 
+$_FILES['elements'] = '$Version$';
 
 function calendar ($data, $month, $year) {
 	$out = "";
