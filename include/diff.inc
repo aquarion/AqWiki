@@ -1,4 +1,13 @@
 <?php
+/*	
+
+********************************************************************************
+	(c) Nicholas 'Aquarion' Avenell 2004
+
+	Released under the Artistic Licence, a copy of which is in docs/licence.txt
+	or can be found at http://opensource.org/licenses/artistic-license.php
+
+********************************************************************************/
 
 function diff($text1, $text2){
 	$diff = explode("\n",diff_compute($text1, $text2));

@@ -1,3 +1,61 @@
 INSTALLATION GUIDE
 
-To be done
+To install you need to 
+make an SQL database, put the contents of docs/tables.sql into it, 
+grant a user permissions and feed that information to etc/aqwiki.ini,
+then put the install directory somewhere apache can see it, fix 
+"base" in the ini file to reflect it's new location, enable .htaccess
+for that directory, and hope it works.
+
+Make an SQL database:
+
+Currently, we require MySQL4. so:
+
+* Enter the mysql client as a user who can create databases
+	(probably `mysql -u root`)
+* "create database DATABASENAME" (or whatever you want to call it)
+* "grant all on aqwiki to USER@localhost identified by 'PASSWORD'"
+	(Replace USER and PASSWORD with appropriate bits, obviously.)
+* "use DATABASENAME"
+* ". ./doc/tables.sql" (This is assuming you start in the directory
+	where this file is. Otherwise replace "./doc" with the path to
+	to the docs directory of this package. If this sounds
+	complicated, paste the contents of "tables.sql" into the mysql
+	client.)
+* exit the client ("exit")
+* login as that user ("mysql -u USER -p DATABASENAME") and make sure
+	it works. 99% of all setup errors are caused by permission
+	problems.
+
+Put the directory somewhere Apache can see it:
+
+* /var/www/aqwiki, for example. Or ~/public_html/aqwiki, but remember
+	the directory must support .htaccess files.
+* Copy and edit the support/htaccess-example file to ".htaccess" in
+	the root of aqwiki's directory.
+
+Configure AqWiki:
+
+* edit Copy "etc/aqwiki.orig" to "etc/aqwiki.ini" and edit it
+	(The file explains each stanza as it goes along)
+* Make sure you've set "newwikis" to true, at least temporarily, since
+	unless this is enabled, you won't be able to create your initial
+	wiki.
+* Decide what you're going to call your first wiki (If you only have one
+	wiki (and OneWiki is enabled) this won't be seen, otherwise the
+	path of your pages will be http://host/base/WIKINAME/article)
+	I'll refer to this as WIKINAME in the rest of this document.
+* edit etc/WIKINAME.tpl (Optional. This is the template for your wiki,
+	I'd recommend working from the default.tpl file. A full index
+	of template replacement tags is in docs/templateTags.txt.
+	If you don't supply one of these, it will use the default.tpl
+	template)
+* edit etc/WIKINAME.rc.php
+	This is the file that defines such things as which users can
+	view and edit the wiki. (It'll be converted to an easier to 
+	understand format at some point. Meanwhile, use the 
+	"example.rc.php" file (in the support directory) to start.
+
+Hope it works. If you have any problems, I'd recommend the AqWiki
+mailing list:
+http://lists.sourceforge.net/lists/listinfo/aqwiki-devel

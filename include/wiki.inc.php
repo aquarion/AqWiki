@@ -2,15 +2,28 @@
 /*******************************************************************************
 	AqWiki - Wiki functions
 ********************************************************************************
+	
+	(c) Nicholas 'Aquarion' Avenell 2004
+
+	Released under the Artistic Licence, a copy of which is in docs/licence.txt
+	or can be found at http://opensource.org/licenses/artistic-license.php
+
+********************************************************************************
 
 	Wiki functions, process documents, get pages etc.
 
 	$Id$
 
 	$Log$
+	Revision 1.13  2004/08/14 11:09:42  aquarion
+	+ Artistic Licence
+	+ Actual Documentation (Shock)
+	+ Config examples
+	+ Install guide
+
 	Revision 1.12  2004/08/13 21:01:43  aquarion
 	* Fixed diff to make it work with the new data abstraction layer
-
+	
 	Revision 1.11  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
@@ -460,6 +473,8 @@ function wiki($wiki, $article){
 
 			if($_EXTRAS['reqEdit']){
 				doAuth($_EXTRAS['reqEdit']);
+			} elseif ($_EXTRAS['reqEdits']){
+				doAuth(explode(",",$_EXTRAS['reqEdits']));
 			}
 
 

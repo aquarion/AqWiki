@@ -2,16 +2,29 @@
 /*******************************************************************************
 	AqWiki
 ********************************************************************************
+	
+	(c) Nicholas 'Aquarion' Avenell 2004
+
+	Released under the Artistic Licence, a copy of which is in docs/licence.txt
+	or can be found at http://opensource.org/licenses/artistic-license.php
+
+********************************************************************************
 
 	Start page. Set up variables and libraries, generate and display the page.
 
 	$Id$
 
 	$Log$
+	Revision 1.12  2004/08/14 11:09:42  aquarion
+	+ Artistic Licence
+	+ Actual Documentation (Shock)
+	+ Config examples
+	+ Install guide
+
 	Revision 1.11  2004/08/12 19:53:23  aquarion
 	* Fixed config directive defaults
 	* Fixed absolute URIs on RSS feeds
-
+	
 	Revision 1.10  2004/08/12 19:37:52  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
