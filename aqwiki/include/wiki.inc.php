@@ -15,9 +15,13 @@
 	$Id$
 
 	$Log$
+	Revision 1.20  2004/09/29 15:11:19  aquarion
+	Fixing formatting bug (Links at the very end of the
+		text were not being recognised)
+
 	Revision 1.19  2004/09/29 10:49:50  aquarion
 	+ Fixed character encoding bugs
-
+	
 	Revision 1.18  2004/09/05 10:16:48  aquarion
 	Moved versions and edit this page to templates
 	
@@ -89,6 +93,8 @@ function process($text, $wiki){
 	global $dataSource;
 	global $_EXTRAS;
 	global $_CONFIG;
+
+	$text .= "\n\n";
 
 	if ($_CONFIG['oneWiki']){
 		$base = $_CONFIG['base'];
