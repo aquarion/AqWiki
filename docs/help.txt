@@ -1,0 +1,24 @@
+Formatting Help:
+
+[[VAR|$foo]] display the contents of $foo (could be a GET or 
+POST variable, or an internal one.
+
+[[RECENT]] list recent modifications
+[[INDEX]] alphabetical index of all pages
+[[ALLBY|author]] All revisions by ‘author’
+[[SEARCH|term]] All current pages containing fulltext ‘term’
+
+[[SETVAR|var|value]] set internal variable ‘var’ to ‘val’
+[[MACRO|name]] include the output of macro ‘name’
+
+[[CAL|yyyy-mm-dd|name]] Add an event on ‘yyyy-mm-dd’ to the page 
+calendar with the id of ‘name’
+[[CAL]] display page calendar
+
+((item)) link to wiki page ‘item’
+((item|name)) link to wiki page ‘item’ with name ‘name’
+Textile
+
+All text formating is done with Textile 
+(http://www.textism.com/tools/textile/) which has a guide to how to 
+use it.
