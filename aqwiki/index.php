@@ -18,6 +18,9 @@ require_once 'include/textile.inc'; // How to format your world.
 
 require_once 'include/mysql4.class.php'; // How to store your world.
 
+
+$_FILES['index'] = '$Version$';
+
 $DEBUG = array();
 
 $_CONFIG = array(

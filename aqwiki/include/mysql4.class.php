@@ -8,14 +8,21 @@
 	$Id$
 
 	$Log$
+	Revision 1.3  2004/07/03 21:35:37  aquarion
+	* Updated SQL output
+	* Fixed Search function (Thanks to Tom Pike)
+	* Added version tracking part 1/3
+
 	Revision 1.2  2004/06/25 15:07:13  aquarion
 	* various fixes resulting from the abstraction of the data layer.
-
+	
 	Revision 1.1  2004/06/25 12:54:25  aquarion
 	All change, apparently. All I've done is abstracted the data layer a bit, why every file's changed I'm not quite sure...
 	
 
 *******************************************************************************/
+
+$_FILES['system'] = '$Version$';
 
 class dataSource {
 	var $db; // Database connection link
@@ -31,8 +38,8 @@ class dataSource {
 	//function: listOfWikis(quicklist?) - return a list of valid wikis with the db.
 	//function: listOfPages();
 
-	//function: pageExists(page) - does a wiki already have this page?
-	//function: getPage(page, revision) - return the contents of a wikiPage (and previous revisions)
+//function: pageExists(page) - does a wiki already have this page?
+//function: getPage(page, revision) - return the contents of a wikiPage (and previous revisions)
 	//function: getContent(page) - just return the content of a given page
 	//function: diff(from, to?) 
 	//function: post(); Add something to the wiki
@@ -168,7 +175,8 @@ class pearDB extends dataSource {
 		if ($result->numRows() == 0){
 			return false;
 		} else {
-			return true; 
+			$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
+			return $row['page']; 
 		}
 	}
 
@@ -286,18 +294,20 @@ class pearDB extends dataSource {
 	function search($terms){
 		$return = array();
 		global $_EXTRAS;
-		/*
 
-		TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully. */
-		
-		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-		." FROM revision"
-		." LEFT JOIN wikipage ON wikipage.page = revision.page"
-		." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-		." GROUP BY wikipage.page";
+		/********************
+			Thanks to Tom Pike <http://www.xiven.com> for reminding me that 'HAVING' exists and
+			helping me get this query right :-) (Aq - 03/07/2004)
+																				********************/
 
-		/* There is code returns all the pages that *now* contain the search term, but is MySQL 4+ only, so is in that class */
-
+		$sql = 'SELECT wikipage.page, wikipage.name, wikipage.created,'
+			.' revision.created as revised, revision.revision, max(revision.revision) as toprev'
+			.' FROM revision'
+			.' LEFT JOIN wikipage ON wikipage.page = revision.page'
+			.' WHERE content LIKE "'.$terms.'" AND wiki = "'.$this->wiki.'"'
+			.' GROUP BY wikipage.page'
+			.' HAVING revision.revision = toprev'
+			.' ORDER BY revision.revision desc';
 
 		$result = $this->query($sql);
 		if ($result->numRows() != 0){
@@ -359,19 +369,10 @@ class mysql4 extends pearDB {
 	function search($terms){
 		$return = array();
 		global $_EXTRAS;
-		/*
 
-		TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully.
 
-		This code returns all the pages that *have ever* contained the search term, and was removed in favour of the below.
-		
-		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-		." FROM revision"
-		." LEFT JOIN wikipage ON wikipage.page = revision.page"
-		." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-		." GROUP BY wikipage.page"; */
-
-		/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ only */
+		/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ 
+			(and anything else that supports subqueries) only */
 
 		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
 		." FROM revision"
@@ -394,19 +395,13 @@ class mysql4 extends pearDB {
 	}
 
 	function post($name, $content, $comment){
-		$sql = $this->getSQL($wiki, $article);
-		$result = $this->query($sql);
 
 		global $_EXTRAS;
 
-		$post_res = $result;
-		if ($result->numRows() == 0){
+		if (!$id = $this->pageExists($name)){
 			$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$this->wiki."\", \"".$name."\", NOW(), 1)";
 			$post_res = $this->query($sql);
 			$id = mysql_insert_id();
-		} else {
-			$row = $post_res->fetchRow(DB_FETCHMODE_ASSOC);
-			$id = $row['page'];
 		}
 
 		$author = "\"".$_EXTRAS['me']."\"";

@@ -11,6 +11,9 @@
 
 *******************************************************************************/
 
+
+$_FILES['wiki'] = '$Version$';
+
 function process($text, $wiki){
 	global $dataSource;
 	global $_EXTRAS;
