@@ -8,11 +8,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.4  2004/07/05 18:09:46  aquarion
+	+ clash repair, no content changed.
+
 	Revision 1.3  2004/07/03 21:35:37  aquarion
 	* Updated SQL output
 	* Fixed Search function (Thanks to Tom Pike)
 	* Added version tracking part 1/3
-
+	
 	Revision 1.2  2004/06/25 15:07:13  aquarion
 	* various fixes resulting from the abstraction of the data layer.
 	
@@ -370,10 +373,8 @@ class mysql4 extends pearDB {
 		$return = array();
 		global $_EXTRAS;
 
-
 		/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ 
 			(and anything else that supports subqueries) only */
-
 		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
 		." FROM revision"
 		." LEFT JOIN wikipage ON wikipage.page = revision.page and revision.revision = (SELECT max(r2.revision) from revision as r2 where r2.page = revision.page)"
