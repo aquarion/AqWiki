@@ -7,7 +7,7 @@ db = "mysql://username:password@host/databaseName"
 ;base = ""
 ; Base contains that path relative to the site root that aqWiki runs in,
 ; so if the URL of your wiki is "http://hol.istic.net/wiki/" the content
-; of this is "wiki". If aqWiki is in the root, this is blank (default)
+; of this is "/wiki". If aqWiki is in the root, this is blank (default)
 
 base = ""
 

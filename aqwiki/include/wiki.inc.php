@@ -15,10 +15,31 @@
 	$Id$
 
 	$Log$
+	Revision 1.15  2004/08/29 17:25:08  aquarion
+	Install:
+	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
+	   * aqwiki.ini.orig now refered to as such, rather than aqwiki.orig
+	   - Removed  CHARSET=latin1;
+	Config:
+	   * 'base' needs preceeding slash
+	Wiki:
+	   + "source" output mode (elements.inc.php)
+	   * Fixed add-user (mysql4.class.php)
+	   + Created 'mysql' datasource (for versions <4) and moved
+	   	relivant sections to it. We now support mysql4. W00t :-)
+		(mysql4.class.php - which needs rearranging and possibly
+		renaming)
+	   * Made ((-)) notation support ((~Aquarion)) urls (Possibly should
+	   	make this an ini-config option for those who don't want
+		~user urls)
+	   * After a sucessful posting, system now redirects you to the new
+	   	entry, meaning that hitting "refresh" after you've submitted
+		an entry doesn't make it submit it again.
+
 	Revision 1.14  2004/08/15 16:04:03  aquarion
 	+ Fix bugs 1009244, 1009268 & 1009266
 	+ Fixed other things
-
+	
 	Revision 1.13  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
@@ -183,12 +204,18 @@ function process($text, $wiki){
 	foreach($matches[1] as $index => $title){
 		if (! strpos($matches[1][$index], "|")){
 			$link = preg_replace("/(\W)/", "", $title);
-			$links[] = array($matches[0][$index],$link, $title);
+			#$links[] = array($matches[0][$index],$link, $title);
 		} else {
 			$bang = explode("|",$matches[1][$index]);
 			$link = preg_replace("/(\W)/", "", $bang[1]);
-			$links[] = array($matches[0][$index],$link, $bang[0]);
+			$title = $bang[0];
 		}
+
+		if ($title[0] == '~'){
+			$link = '~'.$link;
+		}
+		
+		$links[] = array($matches[0][$index],$link, $title);
 	}
 
 	foreach($links as $index => $matches){
@@ -542,6 +569,7 @@ function wiki($wiki, $article){
 				case "Post":
 					$dataSource->post($article, $_POST['content'], $_POST['comment']);
 					$form = false;
+					header("location: $url");
 			}
 
 			if ($text){

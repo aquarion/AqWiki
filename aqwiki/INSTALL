@@ -13,8 +13,8 @@ Currently, we require MySQL4. so:
 
 * Enter the mysql client as a user who can create databases
 	(probably `mysql -u root`)
-* "create database DATABASENAME" (or whatever you want to call it)
-* "grant all on DATABASENAME to USER@localhost identified by 'PASSWORD'"
+* "create database DATABASENAME;" (or whatever you want to call it)
+* "grant all on DATABASENAME.* to USER@localhost;"
 	(Replace USER and PASSWORD with appropriate bits, obviously.)
 * "use DATABASENAME"
 * "\. ./docs/tables.sql" (This is assuming you start in the directory
@@ -36,7 +36,7 @@ Put the directory somewhere Apache can see it:
 
 Configure AqWiki:
 
-* edit Copy "etc/aqwiki.orig" to "etc/aqwiki.ini" and edit it
+* edit Copy "etc/aqwiki.ini.orig" to "etc/aqwiki.ini" and edit it
 	(The file explains each stanza as it goes along)
 * Make sure you've set "newwikis" to true, at least temporarily, since
 	unless this is enabled, you won't be able to create your initial
