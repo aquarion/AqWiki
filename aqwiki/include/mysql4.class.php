@@ -8,13 +8,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.7  2004/08/13 21:01:43  aquarion
+	* Fixed diff to make it work with the new data abstraction layer
+
 	Revision 1.6  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
 	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
 	* Fixed Recent to cope with oneWiki format
 	+ added Host configuation directive
-
+	
 	Revision 1.5  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
@@ -207,7 +210,7 @@ class pearDB extends dataSource {
 		$result=$this->query($sql);
 
 		while	($row = $result->fetchRow(DB_FETCHMODE_ASSOC)){
-			$return[] = $row;
+			$return[$row['revision']] = $row;
 		}
 
 		return $return;
@@ -241,7 +244,7 @@ class pearDB extends dataSource {
 		}
 		if ($to){
 			$sql = $this->getSQL($article, " and revision = ".$to);
-			$result = $db->query($sql);
+			$result = $this->query($sql);
 			$to = $result->fetchRow(DB_FETCHMODE_ASSOC);
 		} else {
 			$sql = $this->getSQL($article);
@@ -257,7 +260,8 @@ class pearDB extends dataSource {
 		$content[3] = $author;
 		$content[4] = date("r",$to['created']);
 		#$_EXTRAS['textarea'] = arr_diff(explode("\n", wordwrap(stripslashes($from['content']))),explode("\n", wordwrap(stripslashes($to['content']))));
-		return diff(wordwrap(stripslashes($from['content'])),wordwrap(stripslashes($to['content'])));
+		$out = "This is displaying the changes from ".date("Y-m-d h:m",$from['created'])." to ".date("Y-m-d h:m",$to['created']);
+		return $out.diff(wordwrap(stripslashes($from['content'])),wordwrap(stripslashes($to['content'])));
 	}
 
 	//function: post(); Add something to the wiki

@@ -8,13 +8,16 @@
 	$Id$
 
 	$Log$
+	Revision 1.12  2004/08/13 21:01:43  aquarion
+	* Fixed diff to make it work with the new data abstraction layer
+
 	Revision 1.11  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
 	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
 	* Fixed Recent to cope with oneWiki format
 	+ added Host configuation directive
-
+	
 	Revision 1.10  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
@@ -43,6 +46,32 @@ function process($text, $wiki){
 	function stripSpaces($text){
 		return ereg_replace("/[:space:]/","",$text);
 	}
+
+	// Set Variables
+	preg_match_all("/\[\[SETVAR\|(.*?)\|(.*?)\]\]/", $text, $matches); // [[CALC|var|value]]
+	foreach($matches[0] as $index => $match){
+		$text = preg_replace("#".preg_quote($match,"#")."#","",$text);
+		$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
+	}
+
+
+	preg_match_all("/\[\[CALC\|(.*?)\|(.*?)\]\]/", $text, $matches); // [[CALC|var|opp]]
+	foreach($matches[0] as $index => $match){
+		$text = preg_replace("#".preg_quote($match,"#")."#","<!-- Calculate functions removed -->",$text);
+		#$eval = "\$_EXTRAS[".$matches[1][$index]."] = \$_EXTRAS[".$matches[1][$index]."] ".$matches[2][$index].";";
+		#eval($eval);
+		#$_EXTRAS[$matches[1][$index]] = eval($eval);
+	}
+
+	preg_match_all("/\[\[RCALC\|(.*?)\|(.*?)\]\]/", $text, $matches); // [[RCALC|ropp|var]]
+	foreach($matches[0] as $index => $match){
+		$text = preg_replace("#".preg_quote($match,"#")."#","<!-- Calculate functions removed -->",$text);
+		#$eval = "\$_EXTRAS[".$matches[2][$index]."] = ".$matches[1][$index]." \$_EXTRAS[".$matches[2][$index]."];";
+		#eval($eval);
+		#$_EXTRAS[$matches[1][$index]] = eval($eval);
+	}
+
+	
 
 
 	preg_match_all("/\[\[VAR\|(.*?)\]\]/",$text, $matches);
@@ -78,13 +107,6 @@ function process($text, $wiki){
 		$result = $dataSource->search($datum);
 		$text = preg_replace("#".preg_quote($match,"#")."#",$result,$text);
 		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
-	}
-
-	// Set Variables
-	preg_match_all("/\[\[SETVAR\|(.*?)\|(.*?)\]\]/", $text, $matches);
-	foreach($matches[0] as $index => $match){
-		$text = preg_replace("#".preg_quote($match,"#")."#","",$text);
-		$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
 
 	// [[MACRO|macroname]]
@@ -210,7 +232,8 @@ function wiki($wiki, $article){
 
 	switch($_GET['action']){
 		case "viewrev":
-			if(!$_GET['id']){
+
+/*			if(!$_GET['id']){
 				die("Parameters incorrect");
 			}
 			$sql = getSQL($wiki, $article, "and revision.revision = ".$_GET['id']);
@@ -253,14 +276,66 @@ function wiki($wiki, $article){
 					}
 				}
 				$content[2] .= $out;
+			}*/
+			if(!$_GET['id']){
+				die("Parameters incorrect");
 			}
+
+			$id = $_GET['id'];
+
+			$pages = $dataSource->getPage($article);
+
+			debug("Found ".count($pages)." pages");
+
+			$row = $pages[$id];
+			
+			$content[2] = $row['content'];#."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
+			$content[3] = $row['creator'];
+			$content[4] = date("r",$row['created']);
+			$out = "\n<div id=\"revisions\">\n*Versions:*\n";
+
+			/*$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
+				if ($row['comment']){
+					$line .= " : ".$row['comment'];
+				}
+			$out .= "# ".$line." [ Current ]\n";*/
+
+			$limit = 4;
+			$current = 0;
+
+			foreach ($pages as $row) {
+
+				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
+				if ($row['comment']){
+					$line .= " : ".$row['comment'];
+				}
+				
+
+				if ($row['revision'] == $id){
+					$out .= "# ".$line." [ Current ]\n";
+				} else {
+					$out .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
+						." <a href=\"".$url."?action=diff&amp;from=".$id."&amp;to=".$row['revision']
+						."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
+				}
+
+				$current++;
+				if ($id < $row['revision']){
+					// Nothing happens
+				} elseif (($current >= $limit && $_GET['action'] != "allrev") ){
+					$out .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
+					break;
+				}
+
+			}
+			$out .= "</div>";
+			$content[2] .= $out;
 			
 			break;
 
 		case "diff":
-			$content[2] = "These are the differences between two versions of $article. Lines styled <span class=\"added\">"
-				."like this</span> have been added to the entry, lines <span class=\"removed\">like this</span> have been removed.\n\n"
-				."This is displaying the changes from ".date("Y-m-d h:m",$from['created'])." to ".date("Y-m-d h:m",$to['created']);
+			$content[2] = "These are the differences between two versions of (($article)). Lines styled <span class=\"added\">"
+				."like this</span> have been added to the entry, lines <span class=\"removed\">like this</span> have been removed.\n\n";
 			
 			$_EXTRAS['textarea'] = $dataSource->diff($article, $_GET['from'], $_GET['to']);
 			$content[2] .= "[[TEXTAREA]]";

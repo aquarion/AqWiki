@@ -8,10 +8,13 @@
 	$Id$
 
 	$Log$
+	Revision 1.10  2004/08/13 21:01:43  aquarion
+	* Fixed diff to make it work with the new data abstraction layer
+
 	Revision 1.9  2004/08/12 19:53:23  aquarion
 	* Fixed config directive defaults
 	* Fixed absolute URIs on RSS feeds
-
+	
 	Revision 1.8  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
@@ -139,15 +142,15 @@ function formatline( $nr1, $nr2, $stat, &$value )  #change to $value if problems
 	switch ($stat)
 	{
 		case "=":
-			return "<div class=\"diff\">". $nr1. " : $nr2 : = ".htmlentities( $value )  ."</div>";
+			return "<li class=\"diff\">". $nr1. " : $nr2 : = ".htmlentities( $value )  ."</li>";
 		break;
 
 		case "+":
-			return "<div class=\"diff added\">". $nr1. " : $nr2 : + ".htmlentities( $value )  ."</div>";
+			return "<li class=\"diff added\">". $nr1. " : $nr2 : + ".htmlentities( $value )  ."</li>";
 		break;
 
 		case "-":
-			return "<div class=\"diff removed\">". $nr1. " : $nr2 : - ".htmlentities( $value )  ."</div>";
+			return "<li class=\"diff removed\">". $nr1. " : $nr2 : - ".htmlentities( $value )  ."</li>";
 		break;
 	}
 

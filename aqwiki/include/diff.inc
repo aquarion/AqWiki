@@ -2,31 +2,31 @@
 
 function diff($text1, $text2){
 	$diff = explode("\n",diff_compute($text1, $text2));
-	$out = "<div class=\"diffSection\">";
+	$out = "<ol class=\"diffSection\">";
 	foreach($diff as $line){
 		if (is_numeric($line[0])){
-			$out.= "</div><div class=\"diffSection\">";
+			$out.= "</ol><ol class=\"diffSection\">";
 		} else {
 			switch ($line[0]){
 			case "<":
-				$out .=  "<div class=\"diff added\">". $nr1. " : $nr2 : + ".htmlentities( $line )  ."</div>\n";
+				$out .=  "<li class=\"diff added\">". $nr1. " : $nr2 : + ".htmlentities( $line )  ."</li>\n";
 			break;
 
 			case ">":
-				$out .=  "<div class=\"diff removed\">". $nr1. " : $nr2 : - ".htmlentities( $line )  ."</div>\n";
+				$out .=  "<li class=\"diff removed\">". $nr1. " : $nr2 : - ".htmlentities( $line )  ."</li>\n";
 			break;
 
 			case "-":
 			break;
 			
 			default:
-				$out .= "<div class=\"diff\">". $nr1. " : $nr2 : = ".htmlentities( $line )  ."</div>\n";
+				$out .= "<li class=\"diff\">". $nr1. " : $nr2 : = ".htmlentities( $line )  ."</li>\n";
 			break;
 
 			}
 		}
 	}
-	$out .= "</div>";
+	$out .= "</ol>";
 
 	return $out;
 }
