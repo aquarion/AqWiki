@@ -18,6 +18,7 @@ require_once 'include/textile.inc'; // How to format your world.
 
 require_once 'include/mysql4.class.php'; // How to store your world.
 
+$DEBUG = array();
 
 $_CONFIG = array(
 	'db' => false, // Databasy goodness
@@ -94,20 +95,26 @@ if ($_SERVER['PHP_AUTH_USER']){
 if (preg_match("/^~(.*)$/",$request[1],$match)) {
 	$content = user($request[0],$match[1]);
 	$_EXTRAS['current'] = $request[1];
+	debug("User page ".$match);
 } elseif ($request[0]) {
 	// get Wiki Front Page
 	if ($request[1]){
 		$_EXTRAS['current'] = $request[1];
+		debug("Wiki page ".$match);
 	} else {
 		$_EXTRAS['current'] = "frontPage";
+		debug("User page blank, going for frontPage");
 	}
 	// get Wiki Entry
 	if ($_CONFIG['newwikis'] != true){
+		debug("No new Wikis allowed, checking");
 
 		#if ( array_key_exists($request[0], getWikis(true) ) ){
 		if ( striarray($request[0], $dataSource->listOfWikis(true) ) ){
 			$content = wiki($request[0],$_EXTRAS['current']);
+			debug("...that's fine.");
 		} else {
+			debug("...not allowing");
 			$content = array(
 				"page",
 				"Not a valid Wiki",
@@ -116,9 +123,11 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 				date("r"));
 		}
 	} else {
+		debug("Loading wikipage ".$_EXTRAS['current']);
 		$content = wiki($request[0],$_EXTRAS['current']);
 	}
 } else {
+	debug("Listing wikis");
 	$listOfwikis = $dataSource->listOfWikis();
 
 	foreach ($listOfwikis as $row) {
@@ -134,6 +143,7 @@ if (preg_match("/^~(.*)$/",$request[1],$match)) {
 
 
 if($_EXTRAS['reqAuth']){
+	debug("Requiring auth ".$_EXTRAS['reqAuth']);
 	switch ($_EXTRAS['reqAuth']){
 		case "user":
 			doAuth($_EXTRAS['reqUser']);
@@ -149,6 +159,8 @@ if($_EXTRAS['reqAuth']){
 	}
 }
 
+
+debug("Game over, No high score.");
 
 echo page($content);
 ?>
