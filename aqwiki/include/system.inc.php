@@ -15,11 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.13  2004/09/05 10:16:48  aquarion
+	Moved versions and edit this page to templates
+
 	Revision 1.12  2004/08/29 20:27:12  aquarion
 	* Cleaning up auth system
 	+ restrictNewPages configuration option
 	+ Restrict usernames (Don't contain commas or be 'register')
-
+	
 	Revision 1.11  2004/08/14 11:09:42  aquarion
 	+ Artistic Licence
 	+ Actual Documentation (Shock)
@@ -63,10 +66,13 @@ function doAuth($requirement, $action = "access this"){
 	debug("You have to be: ".$requirement." to ".$action);
 
 	if ($_GET['action'] == "login"){
+		debug("Checking request for login");
 		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	} elseif ($_COOKIE['me'] && $_COOKIE['password']){
+		debug("Using cookies");
 		$user = $dataSource->validateUser($_COOKIE['me'], $_COOKIE['password']);
 	} else {
+		debug("Using http auth");
 		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	}
 
