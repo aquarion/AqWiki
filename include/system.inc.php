@@ -8,13 +8,17 @@
 	$Id$
 
 	$Log$
+	Revision 1.9  2004/08/12 19:53:23  aquarion
+	* Fixed config directive defaults
+	* Fixed absolute URIs on RSS feeds
+
 	Revision 1.8  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
 	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
 	* Fixed Recent to cope with oneWiki format
 	+ added Host configuation directive
-	
+		
 
 *******************************************************************************/
 
@@ -271,10 +275,10 @@ function buildRSS($content){
 
 	if ($_CONFIG['oneWiki']){
 		$base = $_CONFIG['base'];
-		$url = $_CONFIG['base']."/".$content[1];
+		$url = $_CONFIG['host'].$_CONFIG['base']."/".$content[1];
 	} else {
 		$base = $_CONFIG['base']."/".$content[0];
-		$url = $_CONFIG['base']."/".$content[0]."/".$content[1];
+		$url = $_CONFIG['host'].$_CONFIG['base']."/".$content[0]."/".$content[1];
 	}
 
 	$out ="<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"

@@ -10,13 +10,17 @@ $Id$
 
 
 	$Log$
+	Revision 1.14  2004/08/12 19:53:23  aquarion
+	* Fixed config directive defaults
+	* Fixed absolute URIs on RSS feeds
+
 	Revision 1.13  2004/08/12 19:37:53  aquarion
 	+ RSS output
 	+ Detailed RSS output for Recent
 	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
 	* Fixed Recent to cope with oneWiki format
 	+ added Host configuation directive
-
+	
 	
 
 *******************************************************************************/
@@ -269,7 +273,7 @@ function recent($wiki){
 		// Data for RSS feed
 		// Data is of form array(url, title, description, date);
 		$data[] = array(
-			$_CONFIG['host'].$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision'],
+			$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision'],
 			$row['name'],
 			$row['comment'],
 			$row['created']
