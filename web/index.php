@@ -680,13 +680,13 @@ function process($text, $wiki){
 			panic("database",$result->getMessage(), $sql);
 		}
 		if ($result->numRows() == 0){
-			$link =  "%(uncreated)".$title."\"?(This hasn't been created yet. To do so, click here)\":".$base."/".$stripped."?action=edit%";	
+			$link =  "%(uncreated)".$title."\"?(Uncreated)\":".$base."/".$stripped."?action=edit%";	
 		} else {
 			$link =  "\"".$title."\":".$base."/".$stripped;
 		}
 
 		#$link =  "\"".$match."\":".$base."/".$stripped;
-		$text = preg_replace("/".$replace."/",$link, $text);
+		$text = preg_replace("/(\W)".$replace."(\W)/","$1$link$2", $text);
 	}
 
 	$text = textile($text);
@@ -768,7 +768,7 @@ function searchFor($terms,$wiki){
 }
 
 function index($wiki){
-	$alphabet = range('a', 'z');
+	$alphabet = range('A', 'Z');
 	
 	global $db;
 	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
@@ -790,18 +790,31 @@ function index($wiki){
 	if ($result->numRows() != 0){
 		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
 			if ($row['name'][0] != $now){
-				$now = $row['name'][0];
+				$now = strtoupper($row['name'][0]);
 			}
 			$return[$now][] = array('name' => $row['name'], 'link' => $row['name']);
 		}
 	} else {
 		$return[][] = array('name' => "Nothing Found");
 	}
-	foreach ($return as $index => $letter){
+
+
+	foreach ($alphabet as $letter){
+		if ($return[$letter]){
+			$index = $letter;
+			$menu .= " | \"".$index."\":#$index";
+			$string .= "\n<a name=\"$index\"></a>\n\nh2. ".$index."\n\n";
+			$string .= menu($return[$letter]);
+		} else {
+			$menu .= " | ".$letter;
+		}
+	}
+
+	/*foreach ($return as $index => $letter){
 		$menu .= " | \"".$index."\":#$index";
 		$string .= "\n<a name=\"$index\"></a>\n\nh2. ".$index."\n\n";
 		$string .= menu($letter);
-	}
+	}*/
 	return $menu." |<br>".$string;
 }
 
