@@ -15,11 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.11  2004/09/29 15:16:37  aquarion
+	Fixed SearchAuthor function to work with the data abstraction
+
 	Revision 1.10  2004/08/30 01:26:00  aquarion
 	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
 	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
 	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
-
+	
 	Revision 1.9  2004/08/29 17:25:08  aquarion
 	Install:
 	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
@@ -391,6 +394,7 @@ class pearDB extends dataSource {
 
 	//function: author();
 	function searchAuthor($terms){
+		global $_CONFIG;
 		$line = "All items by $terms\n";
 		$sql = "select id from users where username = \"$terms\"";
 
@@ -405,7 +409,7 @@ class pearDB extends dataSource {
 		$sql = "select revision.*, unix_timestamp(revision.created) as created, wikipage.name, wikipage.origin from revision, wikipage where revision.page = wikipage.page and $author and wiki = \"".$this->wiki."\" order by created desc";
 		$result = $this->query($sql);
 		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-			$line .= "# ".date("r",$row['created'])." - <a href=\"".$_CONFIG['base']."/".$wiki."/".$row['name']."\">".$row['name']."</a>\n";
+			$line .= "# ".date("r",$row['created'])." - <a href=\"".$_CONFIG['base']."/".$this->wiki."/".$row['name']."\">".$row['name']."</a>\n";
 		}
 		return $line;
 	}
