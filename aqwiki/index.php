@@ -8,13 +8,20 @@
 	$Id$
 
 	$Log$
+	Revision 1.10  2004/08/12 19:37:52  aquarion
+	+ RSS output
+	+ Detailed RSS output for Recent
+	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
+	* Fixed Recent to cope with oneWiki format
+	+ added Host configuation directive
+
 	Revision 1.9  2004/07/05 20:29:05  aquarion
 	* Lets try actually using _real_ CVS keywords, not words I guess at this time
 	+ [[AQWIKI]] template tag
 	+ Default template finally exists! Sing yay!
 	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
 	* Minor fixen
-
+	
 
 *******************************************************************************/
 
@@ -43,7 +50,8 @@ $DEBUG = array();
 
 $_CONFIG = array(
 	'db' => false, // Databasy goodness
-	'base' => ''
+	'base' => '',
+	'host' => "http://".$_SERVER['SERVER_NAME']
 );
 
 
@@ -72,8 +80,11 @@ $_EXTRAS = $_REQUEST;
 
 $_EXTRAS['version'] = "0.0a";
 
+$_EXTRAS['versionURL'] = 'http://aqwiki.sf.net/release?v='.$_EXTRAS['version'];
+
 $_EXTRAS['versionString'] = '<A HREF="http://aqwiki.sf.net">AqWiki</A> '
-	.'<A HREF="http://aqwiki.sf.net/release?v='.$_EXTRAS['version'].'">v'.$_EXTRAS['version'].'</A>';
+	.'<A HREF="'.$_EXTRAS['versionURL'].'">v'.$_EXTRAS['version'].'</A>';
+
 
 /* Wiki configuation files are in etc/ with the template data */
 
