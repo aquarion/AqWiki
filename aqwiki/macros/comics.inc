@@ -1,5 +1,7 @@
 <?PHP
 
+// $Id$
+
 function niceTime($time, $shortform = false){
 	
 

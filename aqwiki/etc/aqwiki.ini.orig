@@ -1,5 +1,6 @@
-; $id$
+; $Id$
 ; AqWiki config
+; 
 
 db = "mysql://username:password@host/databaseName"
 

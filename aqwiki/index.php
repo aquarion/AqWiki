@@ -7,24 +7,37 @@
 
 	$Id$
 
-	$log$
+	$Log$
+	Revision 1.9  2004/07/05 20:29:05  aquarion
+	* Lets try actually using _real_ CVS keywords, not words I guess at this time
+	+ [[AQWIKI]] template tag
+	+ Default template finally exists! Sing yay!
+	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
+	* Minor fixen
+
 
 *******************************************************************************/
 
 require_once 'include/system.inc.php'; // How to interact with the system
 require_once 'include/wiki.inc.php'; // How to display Wiki pages
 require_once 'include/elements.inc.php'; // Things to put in Wiki Pages
-#require_once 'include/textile.inc'; // How to format your world.
-
-require_once 'include/classTextile.php'; // How to format your world.
 require_once 'include/mysql4.class.php'; // How to store your world.
+
+/* Use this :*/
+
+require_once 'include/textile.inc'; // How to format your world.
+
+
+/* Use this if you have it:*/
+
+/*require_once 'include/classTextile.php'; // How to format your world.
 
 function textile($text, $lite=''){
 	$textile = new Textile;
 	return $textile->TextileThis($text);
-}
+}*/
 
-$_FILES['index'] = '$Version$';
+$_FILES['index'] = '$Revision$';
 
 $DEBUG = array();
 
@@ -32,6 +45,7 @@ $_CONFIG = array(
 	'db' => false, // Databasy goodness
 	'base' => ''
 );
+
 
 $_CONFIG = parse_ini_file('etc/aqwiki.ini', true);
 
@@ -56,6 +70,11 @@ if ($_CONFIG['oneWiki']){
 
 $_EXTRAS = $_REQUEST;
 
+$_EXTRAS['version'] = "0.0a";
+
+$_EXTRAS['versionString'] = '<A HREF="http://aqwiki.sf.net">AqWiki</A> '
+	.'<A HREF="http://aqwiki.sf.net/release?v='.$_EXTRAS['version'].'">v'.$_EXTRAS['version'].'</A>';
+
 /* Wiki configuation files are in etc/ with the template data */
 
 if(file_exists('etc/'.$request[0].'.rc.php')){
@@ -67,6 +86,7 @@ if(file_exists('etc/'.$request[0].'.rc.php')){
 
 $dataSource = new mysql4($_CONFIG['db']);
 $dataSource->wiki = $request[0];
+$_EXTRAS['wiki'] = $request[0];
 
 if ($_GET['action'] == "relogin") {
 	$_SERVER['PHP_AUTH_USER'] = false;
@@ -169,8 +189,8 @@ if($_EXTRAS['reqAuth']){
 	}
 }
 
+echo page($content);
+
 
 debug("Game over, No high score.");
-
-echo page($content);
 ?>
