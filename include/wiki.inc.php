@@ -15,9 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.22  2005/02/16 17:13:38  aquarion
+	* Database fixes
+	* New Textile Library support
+	* Developement resumes, yay
+
 	Revision 1.21  2004/10/22 13:56:08  aquarion
 	* Fixed Stuff
-
+	
 	Revision 1.20  2004/09/29 15:11:19  aquarion
 	Fixing formatting bug (Links at the very end of the
 		text were not being recognised)
@@ -105,10 +110,33 @@ function process($text, $wiki){
 		$base = $_CONFIG['base']."/".$wiki;
 	}
 
-
 	function stripSpaces($text){
 		return ereg_replace("/[:space:]/","",$text);
 	}
+
+
+	/*// Conditional includes
+	preg_match_all("/\[\[IFEDIT\|(.*?)\]\]/", $text, $matches);
+	foreach($matches[0] as $index => $match){
+		$result = $matches[1][$index];
+		if (checkAuth("edit")){
+			$text = preg_replace("#".preg_quote($match,"#")."#",$result,$text);
+		} else {
+			$text = preg_replace("#".preg_quote($match,"#")."#","Can't Edit",$text);
+		}
+		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
+	}
+
+	preg_match_all("/\[\[IFEDIT\|(.*?)\|(.*?)\]\]/", $text, $matches);
+	foreach($matches[0] as $index => $match){
+		if (checkAuth("edit")){
+			$text = preg_replace("#".preg_quote($match,"#")."#", $matches[1][$index],$text);
+		} else {
+			$text = preg_replace("#".preg_quote($match,"#")."#", $matches[2][$index],$text);
+		}
+		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
+	}*/
+
 
 	// Set Variables
 	preg_match_all("/\[\[SETVAR\|(.*?)\|(.*?)\]\]/", $text, $matches); // [[CALC|var|value]]
@@ -280,7 +308,8 @@ function process($text, $wiki){
 }
 
 function entitize($input){
-	return htmlentities($input, ENT_NOQUOTES);
+	return $input;
+	#return htmlentities($input, ENT_NOQUOTES);
 }
 
 function wiki($wiki, $article){
@@ -582,7 +611,7 @@ function wiki($wiki, $article){
 				$content[3] = $row['creator'];
 				$content[4] = date("r",$row['created']);
 
-				$_EXTRAS['versions'] = "\n<div id=\"revisions\">\n*Versions:*\n";
+				$_EXTRAS['versions'] = "\n<div id=\"revisions\">\n\n*Versions:*\n\n";
 				$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];

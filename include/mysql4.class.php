@@ -15,9 +15,14 @@
 	$Id$
 
 	$Log$
+	Revision 1.13  2005/02/16 17:13:37  aquarion
+	* Database fixes
+	* New Textile Library support
+	* Developement resumes, yay
+
 	Revision 1.12  2004/10/22 13:56:08  aquarion
 	* Fixed Stuff
-
+	
 	Revision 1.11  2004/09/29 15:16:37  aquarion
 	Fixed SearchAuthor function to work with the data abstraction
 	
@@ -394,14 +399,14 @@ class pearDB extends dataSource {
 		} else {
 			$return[] = array('name' => "Nothing Found for $terms");
 		}
-		return "h3. Search for $terms\n".menu($return);
+		return "h3. Search for $terms\n\n".menu($return);
 	}
 
 	//function: author();
 	function searchAuthor($terms){
 		global $_CONFIG;
 
-		$line = "All items by $terms\n";
+		$line = "All items by $terms\n\n";
 		$sql = "select id from users where username = \"$terms\"";
 
 		$result = $this->query($sql);
@@ -418,11 +423,8 @@ class pearDB extends dataSource {
 
 		$authors = array();
 		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-<<<<<<< mysql4.class.php
 			$authors[] = $row;
-=======
-			$line .= "# ".date("r",$row['created'])." - <a href=\"".$_CONFIG['base']."/".$this->wiki."/".$row['name']."\">".$row['name']."</a>\n";
->>>>>>> 1.11
+		#	$line .= "# ".date("r",$row['created'])." - <a href=\"".$_CONFIG['base']."/".$this->wiki."/".$row['name']."\">".$row['name']."</a>\n";
 		}
 		return $authors;
 
@@ -448,6 +450,15 @@ class pearDB extends dataSource {
 
 class mysql extends pearDB {
 
+	function query($sql){
+		$db = $this->db;
+		$result = $db->query($sql);
+		if (DB::isError($result)) {
+			panic("database",$result->getMessage()."\n\n".mysql_error(), $sql);
+		}
+		return $result;
+	}
+
 	// Anything not here is provided by pearDB;
 	
 	function post($name, $content, $comment){
@@ -456,13 +467,15 @@ class mysql extends pearDB {
 
 		if (!$id = $this->pageExists($name)){
 			$sql = "insert into wikipage (wiki, name, created, origin) values (\"".$this->wiki."\", \"".$name."\", NOW(), 1)";
+			#$sql = addslashes($sql);
 			$post_res = $this->query($sql);
 			$id = mysql_insert_id();
 		}
 
 		$author = "\"".$_EXTRAS['me']."\"";
 
-		$sql  = "insert into revision (content, comment, creator, page, created) values (\"".$content."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
+		$sql  = "insert into revision (content, comment, creator, page, created) values (\"".addslashes($content)."\", \"".htmlentities($_POST['comment'])."\", $author, $id, NOW())";
+		#$sql = addslashes($sql);
 
 		$this->query($sql);
 	}
@@ -496,7 +509,7 @@ class mysql4 extends mysql {
 		} else {
 			$return[] = array('name' => "Nothing Found for $terms");
 		}
-		return "h3. Search for $terms\n".menu($return);
+		return "h3. Search for $terms\n\n".menu($return);
 	}
 }
 
