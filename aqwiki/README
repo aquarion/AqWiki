@@ -1,0 +1,11 @@
+$id$
+
+AqWiki Readme
+-------------
+
+AqWiki is a new wiki. See "docs/history" for why it exists. It really isn't in any fit state for real use yet, mostly because it still has no install docs whatsoever beyond this file. To install you need to make an SQL database, put the contents of docs/tables.sql into it, grant a user permissions and feed that information to etc/aqwiki.ini, then put the install directory somewhere apache can see it, fix "base" in the ini file to reflect it's new location, enable .htaccess for that directory, and hope it works.
+
+I'll document this all at some point. It's all logical in my head.
+
+-- 
+Nicholas 'Aquarion' Avenell, 04/06/2004
