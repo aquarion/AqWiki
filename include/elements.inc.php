@@ -1,20 +1,20 @@
 <?PHP
+
 /*******************************************************************************
+
 	AqWiki - Elements
-********************************************************************************
 
-	Page elements. Calendar, Indexs, recent files, searches etc.
+*******************************************************************************
+$Id$
 
-	$Id$
+
 
 	$Log$
-	Revision 1.5  2004/06/22 15:00:38  aquarion
-	+ Made system do neat reverse question mark thing for uncreated links
-	* Made ((Aquarion))'s link to "Aquarion" instead of "Aquarion's" (This is a Textile bug)
+	Revision 1.6  2004/06/25 12:54:25  aquarion
+	All change, apparently. All I've done is abstracted the data layer a bit, why every file's changed I'm not quite sure...
 
-	Revision 1.4  2004/06/17 22:20:33  aquarion
-	*** empty log message ***
-	
+
+
 
 *******************************************************************************/
 
@@ -107,26 +107,6 @@ function calendar ($data, $month, $year) {
 	return $out;
 }
 
-function nearby($wiki, $page){
-	global $db;
-	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-	." FROM revision"
-	." LEFT JOIN wikipage ON wikipage.page = revision.page"
-	." WHERE content LIKE \"%((".$page."))%\" AND wiki = \"$wiki\""
-	." GROUP BY wikipage.page";
-	
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	$return = array();
-	if ($result->numRows() != 0){
-		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-			$return[] = array('name' => $row['name'], 'link' => $row['name']);
-		}
-	}
-	return $return;
-}
 
 function page($content){
 	global $_EXTRAS;
@@ -172,102 +152,21 @@ function setVar($var,$value){
 	return "SetVar";
 }
 
+function index(){
 
-function viewRecent($wiki){
-	global $_EXTRAS;
+	global $dataSource;
 	global $_CONFIG;
-	$base = $_CONFIG['base']."/".$wiki;
-	global $db;
 
-	$sql = "select "
-			."wikipage.*, revision.*, creatorname.username as origin, "
-			."unix_timestamp(revision.created) as created "
-			."from wikipage, revision "
-			."left join users on revision.creator = users.id "
-			."left join users as creatorname on creatorname.id = origin "
-			."where wikipage.wiki = \"$wiki\" and wikipage.page = revision.page "
-			."order by revision.created desc limit 50";
-
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-		$line = date("r",$row['created'])." - \"".$row['name']."\":$base/".$row['name']." - \"".$row['creator']."\":$base/~".$row['creator'];
-		if ($row['comment']){
-			$line .= " : ".$row['comment'];
-		}
-		$out .= "* ".$line." [ <a href=\"".$base."/".$row['name']."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
-		." <a href=\"".$base."/".$row['name']."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the newest revision\">Diff</a> ]\n";
-	}
-	return $out;
-
-}
-
-function searchFor($wiki,$terms){
-	$return = array();
-	global $db;
-	global $_EXTRAS;
-	/*
-
-	TODO: Make this (searching) code less MySQL 4 dependant. Like: Not at all. Or at least to fail gracefully.
-
-	This code returns all the pages that *have ever* contained the search term, and was removed in favour of the below.
-	
-	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-	." FROM revision"
-	." LEFT JOIN wikipage ON wikipage.page = revision.page"
-	." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-	." GROUP BY wikipage.page"; */
-
-	/* This code returns all the pages that *now* contain the search term, but is MySQL 4+ only */
-
-	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-	." FROM revision"
-	." LEFT JOIN wikipage ON wikipage.page = revision.page and revision.revision = (SELECT max(r2.revision) from revision as r2 where r2.page = revision.page)"
-	." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"$wiki\""
-	." GROUP BY wikipage.page"; 
-
-
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	if ($result->numRows() != 0){
-		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-			if ($row['name'] != $_EXTRAS['current']){
-				$return[] = array('name' => $row['name'], 'link' => $row['name']);
-			}
-		}
-	} else {
-		$return[] = array('name' => "Nothing Found for $terms");
-	}
-	return "h3. Search for $terms\n".menu($return);
-}
-
-function index($wiki){
 	$alphabet = range('A', 'Z');
-	global $_CONFIG;
-	
-	global $db;
-	$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
-	." FROM revision"
-	." LEFT JOIN wikipage ON wikipage.page = revision.page"
-	." WHERE wiki = \"".$wiki."\""
-	." GROUP BY wikipage.page"
-	." ORDER BY wikipage.name";
 
-
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
 	$return = array();
+	
 
-	$now = "";
+	$listOfPages = $dataSource->listOfPages();
 
-	if ($result->numRows() != 0){
-		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
+
+	if (count($listOfPages) != 0){
+		foreach($listOfPages as $row){
 			if ($row['name'][0] != $now){
 				$now = strtoupper($row['name'][0]);
 			}
@@ -297,33 +196,6 @@ function index($wiki){
 	}*/
 	return $menu." |<br>".$string;
 }
-
-function searchAuthor($wiki,$terms){
-	global $db;
-	$line = "All items by $terms\n";
-	global $_CONFIG;
-	$sql = "select id from users where username = \"$terms\"";
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	if ($result->numRows() != 0){
-		$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
-		$author = "(revision.creator = ".$row['id']." or revision.creator = \"".$terms."\")";
-	} else {
-		$author = " revision.creator = \"".$terms."\"";
-	}
-	$sql = "select revision.*, unix_timestamp(revision.created) as created, wikipage.name, wikipage.origin from revision, wikipage where revision.page = wikipage.page and $author and wiki = \"$wiki\" order by created desc";
-	$result = $db->query($sql);
-	if (DB::isError($result)) {
-		panic("database",$result->getMessage(), $sql);
-	}
-	while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
-		$line .= "# ".date("r",$row['created'])." - <a href=\"".$_CONFIG['base']."/".$wiki."/".$row['name']."\">".$row['name']."</a>\n";
-	}
-	return $line;
-}
-
 
 function user($wiki, $user){
 	$content = array(

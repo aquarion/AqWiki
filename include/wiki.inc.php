@@ -12,7 +12,7 @@
 *******************************************************************************/
 
 function process($text, $wiki){
-	global $db;
+	global $dataSource;
 	global $_EXTRAS;
 	global $_CONFIG;
 	$base = $_CONFIG['base']."/".$wiki;
@@ -31,16 +31,19 @@ function process($text, $wiki){
 
 	#$text = preg_replace("/\[\[SEARCH\|(.*?)\]\]/",searchFor($wiki,'\1'), $text);
 	#$text = preg_replace("/\[\[ALLBY\|(.*?)\]\]/",searchAuthor($wiki,'\1'), $text);
-	$text = preg_replace("/\[\[RECENT\]\]/",viewRecent($wiki), $text);
-	$text = preg_replace("/\[\[INDEX\]\]/",index($wiki), $text);
-
+	if (preg_match("#\[\[RECENT\]\]#",$text)){
+		$text = preg_replace("/\[\[RECENT\]\]/",$dataSource->viewRecent($wiki), $text);
+	}
+	if (preg_match("/\[\[INDEX\]\]/",$text)){
+		$text = preg_replace("/\[\[INDEX\]\]/",index(), $text);
+	}
 
 
 
 	// Search for User
 	preg_match_all("/\[\[ALLBY\|(.*?)\]\]/", $text, $matches);
 	foreach($matches[0] as $index => $match){
-		$result = searchAuthor($wiki,$matches[1][$index]);
+		$result = $dataSource->searchAuthor($matches[1][$index]);
 		$text = preg_replace("#".preg_quote($match,"#")."#",$result,$text);
 		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
@@ -49,7 +52,7 @@ function process($text, $wiki){
 	preg_match_all("/\[\[SEARCH\|(.*?)\]\]/", $text, $matches);
 	foreach($matches[0] as $index => $match){
 		$datum = $matches[1][$index];
-		$result = searchFor($wiki,$datum);
+		$result = $dataSource->search($datum);
 		$text = preg_replace("#".preg_quote($match,"#")."#",$result,$text);
 		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
@@ -131,12 +134,7 @@ function process($text, $wiki){
 		$stripped = $matches[1];
 		$title = $matches[2];
 
-		$sql = "select revision.page from revision, wikipage where revision.page = wikipage.page and wikipage.name = \"$stripped\"";
-		$result = $db->query($sql);
-		if (DB::isError($result)) {
-			panic("database",$result->getMessage(), $sql);
-		}
-		if ($result->numRows() == 0){
+		if (!$dataSource->pageExists($stripped)){
 			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
 			#$link =  "\"".$title."\":".$base."/".$stripped;	
 			$link = '<a href="'.$base."/".$stripped.'" class="uncreated">¿'.$title.'?</a>';
@@ -168,27 +166,12 @@ function process($text, $wiki){
 }
 
 function wiki($wiki, $article){
-	global $db;
+	global $dataSource;
 	global $_CONFIG;
 	global $_EXTRAS;
 	$base = $_CONFIG['base']."/".$wiki;
 	$url = $base."/".$article;
 
-	function getSQL($wiki, $article, $crit = false){
-		$sql = "select "
-			."wikipage.*, revision.*, creatorname.username as origin, "
-			."unix_timestamp(revision.created) as created "
-			."from wikipage, revision "
-			."left join users on revision.creator = users.id "
-			."left join users as creatorname on creatorname.id = origin "
-			."where wikipage.wiki = \"$wiki\" and wikipage.name = \"$article\" and wikipage.page = revision.page ";
-		if ($crit){
-			$sql .= $crit;
-		}
-		$sql .= " order by revision.created desc";
-		
-		return $sql;
-	}
 	$content = array(
 		$wiki,
 		$article,
@@ -246,37 +229,11 @@ function wiki($wiki, $article){
 			break;
 
 		case "diff":
+			$content[2] = "These are the differences between two versions of $article. Lines styled <span class=\"added\">"
+				."like this</span> have been added to the entry, lines <span class=\"removed\">like this</span> have been removed.\n\n"
+				."This is displaying the changes from ".date("Y-m-d h:m",$from['created'])." to ".date("Y-m-d h:m",$to['created']);
 			
-			if ($_GET['from']){
-				$sql = getSQL($wiki, $article, " and revision = ".$_GET['from']);
-				$result = $db->query($sql);
-				$from = $result->fetchRow(DB_FETCHMODE_ASSOC);
-			} else {
-				die("From not supplied");
-			}
-			if ($_GET['to']){
-				$sql = getSQL($wiki, $article, " and revision = ".$_GET['to']);
-				$result = $db->query($sql);
-				$to = $result->fetchRow(DB_FETCHMODE_ASSOC);
-			} else {
-				$sql = getSQL($wiki, $article);
-				$result = $db->query($sql);
-				$to = $result->fetchRow(DB_FETCHMODE_ASSOC);
-			}
-
-			$content[2] = "These are the differences between two versions of $article. Lines styled <span class=\"added\">like this</span> have been "
-					."added to the entry, lines <span class=\"removed\">like this</span> have been removed.\n\n"
-					."This is displaying the changes from ".date("Y-m-d h:m",$from['created'])." to ".date("Y-m-d h:m",$to['created']);
-
-			if ($to['creator'] == $from['creator']){
-				$author = $from['creator'];
-			} else {
-				$author = $from['creator'] . " &amp; ".$to['creator'];
-			}
-			$content[3] = $author;
-			$content[4] = date("r",$to['created']);
-			#$_EXTRAS['textarea'] = arr_diff(explode("\n", wordwrap(stripslashes($from['content']))),explode("\n", wordwrap(stripslashes($to['content']))));
-			$_EXTRAS['textarea'] = diff(wordwrap(stripslashes($from['content'])),wordwrap(stripslashes($to['content'])));
+			$_EXTRAS['textarea'] = $dataSource->diff($article, $_GET['from'], $_GET['to']);
 			$content[2] .= "[[TEXTAREA]]";
 
 			break;
@@ -515,16 +472,15 @@ function wiki($wiki, $article){
 			
 
 		default:
-			$sql = getSQL($wiki, $article);
-			$result = $db->query($sql);
-			if (DB::isError($result)) {
-				panic("database",$result->getMessage(), $sql);
-			}
-			if ($result->numRows() == 0){
+			if (!$dataSource->pageExists($article)){
 				$content[2] = "This page doesn't exist yet, Would you like to create it?\n\n\"Go On Then\":".$_CONFIG['base']."/$wiki/$article?action=edit";
 			} else {
-				$_EXTRAS['nearby'] = nearby($wiki, $article);
-				$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
+				$_EXTRAS['nearby'] = $dataSource->nearby($article);
+	
+				$pages = $dataSource->getPage($article);
+
+				$row = array_shift($pages);
+
 				if (strcmp ($row['wiki'] , $wiki) != 0){
 					$base = $_CONFIG['base']."/".$row['wiki'];
 					$url = $base."/".$article;
@@ -543,7 +499,7 @@ function wiki($wiki, $article){
 				$limit = 4;
 				$current = 0;
 
-				while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
+				foreach ($pages as $row) {
 					$line = date("r",$row['created'])." - \"".$row['creator']."\":$base/~".$row['creator'];
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
@@ -564,25 +520,4 @@ function wiki($wiki, $article){
 }
 
 
-function getWikis($quickList = false){
-	global $db;
-
-	$wikis = array();
-
-	$sql = "select wiki, count(page) as count from wikipage group by wiki";
-	$result = $db->query($sql);
-	// Always check that $result is not an error
-	if (DB::isError($result)) {
-		panic($result->getMessage());
-	}
-	while ($row = $result->fetchRow()) {
-		if ($quickList){
-			$wikis[] = $row[0];
-		} else {
-			$wikis[] = $row;
-		}
-	}
-
-	return $wikis;
-}
 ?>

@@ -12,5 +12,5 @@ RewriteEngine on
 RewriteRule     ^static(.*)$      -                  [L]
 RewriteRule   	^robots.txt$      -                  [L]
 RewriteRule	^index.php$	-	[L]
-RewriteRule	!\.(gif|jpg|png|css|misc)$	/index.php
-RewriteRule	.*	/index.php
+RewriteRule	!\.(gif|jpg|png|css|misc)$	index.php
+RewriteRule	.*	index.php
