@@ -1,0 +1,24 @@
+<p>(From <a href="http://www.aquarionics.com/journal/2003/07/21/Wiki_wiki_wild%2C_wiki_wiki_wild_wild_web">Aquarionics</a>, 21st July 2003)</p>
+
+	<p>About a month ago, I concieved a Project.</p>
+
+	<p>Basically, it was when <span class="caps">ESR</span> shifted the focus of the Jargon File by changing the &#8220;J Random Hacker&#8221; entry to more reflect his own beliefs. My plan to combat this was &#8211; and is &#8211; to file the whole Jargon File into a Wiki and let the world at it. Think an entry is biased? Change it.</p>
+
+	<p>All I needed to do was to get it out of the Jargon File format and into something that I could import into a wiki. Then I discovered something really, really fundermental.</p>
+
+	<p>All wikis suck.</p>
+
+	<p>In fact, the particular way all these Wiki&#8217;s sucked was two fold. The first was the most important: No existing wiki that I could install on this server could import data from an external source. All the ones that backed onto plain text files I couldn&#8217;t &#8211; for various reasons &#8211; install. All the ones that backed onto a mysql database had data structures six feet deep that I couldn&#8217;t hack my way around.</p>
+
+	<p>The second reason all wikis suck is the really, really horribly <b>nasty</b> text formatting that has become standard. &#8216;&#8217;&#8216;&#8217;this is italic&#8217;&#8216;&#8217;&#8217; &#8216;&#8217;&#8216;&#8217;&#8216;&#8217;&#8216;&#8217;this is bold&#8217;&#8216;&#8217;&#8216;&#8217;&#8216;&#8217;&#8217; is a little too baroque, verbose, and nasty for my liking.</p>
+
+	<p>This weekend, my project was to play around with <a href="http://pear.php.net"><span class="caps">PEAR</span></a> (The <span class="caps">PHP</span> equivlient of <span class="caps">CPAN</span>, crossed with apt-get. It rocks), for which I needed a project. Plus, <a href="http://www.textism.com">Dean Allen</a> has just released <a href="http://www.textism.com/tools/textile/">Textile 2 beta</a>, the best text-formatting library for <span class="caps">PHP </span>(and now perl) bar none. Aha, I thought. This will solve several problems.</p>
+
+	<p>So, this afternoon about 16:00 I started coding my own Wikilike, and now at 1am, I&#8217;ve finished the first cut. It uses textile for formatting, it does Wikilike things, and it backs on to the Aquarionics User System (currently only used for <a href="/misc/story">Forever</a>, so if you had an account on Forever at about 8pm this evening &#8211; when I copied the database locally &#8211; you have an account on the Wiki. I haven&#8217;t gotten around to writing an account creation system for the wiki locally yet, so you&#8217;ll have to be anonymous if you don&#8217;t).</p>
+
+	<p>The current Wiki is up <a href="http://aqua.water.gkhs.net/aqWiki">on my local server</a>, it inherantly supports mulitple wiki&#8217;s per server, but I&#8217;ve still got to put in the really cool bits, like the <span class="caps">XML</span>-RPC interface, the ability for admins to lock pages, and stuff.</p>
+
+	<p>And the name? Well, it was done quickly (A Qwiki), it&#8217;s mine (Aq Wiki) and it&#8217;s slightly sick (Aqw Iki) </p>
+
+	<p>But it&#8217;s there, it&#8217;s working, and since I&#8217;m working in the morning, I&#8217;d better head to bed&#8230;</p>
+
