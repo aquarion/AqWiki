@@ -15,9 +15,12 @@
 	$Id$
 
 	$Log$
+	Revision 1.19  2004/09/29 10:49:50  aquarion
+	+ Fixed character encoding bugs
+
 	Revision 1.18  2004/09/05 10:16:48  aquarion
 	Moved versions and edit this page to templates
-
+	
 	Revision 1.17  2004/08/30 01:26:00  aquarion
 	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
 	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
@@ -260,11 +263,15 @@ function process($text, $wiki){
 	$text = preg_replace("/\[CMD\](.*?)\[CMD\]/","[[$1]]",$text);
 
 
-	$text = preg_replace("/\[\[TEXTAREA\]\]/",$_EXTRAS['textarea'],$text);
+	$text = preg_replace("/\[\[TEXTAREA\]\]/",entitize($_EXTRAS['textarea']),$text);
 
 
 
 	return $text;
+}
+
+function entitize($input){
+	return htmlentities($input, ENT_NOQUOTES);
 }
 
 function wiki($wiki, $article){
