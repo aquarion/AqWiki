@@ -1,0 +1,16 @@
+# $Id: htaccess-example,v 1.1 2004/08/14 11:09:42 aquarion Exp $
+
+# In order, then:
+# Turn on mod_rewrite:
+RewriteEngine on
+
+# Don't rewrite pages beginning "static", "robots.txt" or "index.php"
+# (I use a directory called "static" in the index dir. to put things
+# like CSS files & template images.
+
+RewriteRule     ^static(.*)$      -                  [L]
+RewriteRule   	^robots.txt$      -                  [L]
+RewriteRule	^index.php$	-	[L]
+
+# Redirect everything but to index.php
+RewriteRule	.*	index.php

@@ -1,0 +1,16 @@
+$Id: TODO,v 1.2 2004/08/14 11:09:42 aquarion Exp $
+
+TODO:
+
+Install guide
+
+Collision detection
+	see docs/collision
+
+Export Help
+	either [[HELP]] which loads in the text file,
+	or add the contents of [[HELP]] to the end of ?edit
+
+Convert Wiki conf to .ini
+
+Namespace the tables
