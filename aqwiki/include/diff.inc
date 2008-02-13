@@ -11,19 +11,37 @@
 
 function diff($text1, $text2){
 	$nr1 = $nr2 = "";
-	$diff = explode("\n",diff_compute($text1, $text2));
+	//$diff = explode("\n",diff_compute($text1, $text2));
+	$diff = diff_compute($text1, $text2);
+	
+	$diff = array_slice($diff, 3);
+	
 	$out = "<ol class=\"diffSection\">";
+	
 	foreach($diff as $line){
-		if (is_numeric($line[0])){
+	
+	$class = '';
+	switch ($line[0]){
+		case '+':
+			$class = 'added';
+			break;
+			
+		case '-':
+			$class = 'removed';
+			break;
+	}
+		$out .= '<li class="diff '.$class.'">'.$line."</li>\n";
+	
+		/*if (is_numeric($line[0])){
 			$out.= "</ol><ol class=\"diffSection\">";
 		} else {
 			switch ($line[0]){
 			case "<":
-				$out .=  "<li class=\"diff added\">". $nr1. " : $nr2 : + ".htmlentities( $line )  ."</li>\n";
+				$out .=  "<li class=\"diff removed\">". $nr1. " : $nr2 : + ".htmlentities( $line )  ."</li>\n";
 			break;
 
 			case ">":
-				$out .=  "<li class=\"diff removed\">". $nr1. " : $nr2 : - ".htmlentities( $line )  ."</li>\n";
+				$out .=  "<li class=\"diff added\">". $nr1. " : $nr2 : - ".htmlentities( $line )  ."</li>\n";
 			break;
 
 			case "-":
@@ -34,7 +52,7 @@ function diff($text1, $text2){
 			break;
 
 			}
-		}
+		}*/
 	}
 	$out .= "</ol>";
 
@@ -58,6 +76,7 @@ function diff_compute($text1, $text2)
 
   $TempDir = "/tmp";
   $DiffCmd = "/usr/bin/diff";
+  $DiffOpt = ' -U 10000';
 
   $num = function_exists('posix_getpid') ? posix_getpid() : rand();
 
@@ -80,25 +99,15 @@ function diff_compute($text1, $text2)
     { $diff = LIB_NoDiffAvailable; }
   else {
     $output = array();
-    exec("$DiffCmd $temp1 $temp2", $output);
+    exec("$DiffCmd $DiffOpt $temp1 $temp2", $output);
     $diff = join("\n", $output);
   }
 
-  unlink($temp1);
-  unlink($temp2);
+ //unlink($temp1);
+ // unlink($temp2);
 
-  return $diff;
+  return $output;
 
-
-  //and now if temp files don't work:
-  $texta=explode ("\n", $text1);
-  $textb=explode ("\n", $text2);
-  $diffab = "<TABLE>". //<TR><TD>Old</TD><TD>New</TD></TR><TR><TD>$text1</TD><TD>$text2</TD></TR>
-  "<TR><TD>Removed:</TD><TD>Added:</TD></TR>
-           <TR><TD>".nl2br(implode ("\n", array_minus_array ($texta, $textb)))."</TD>
-             <TD>".nl2br(implode ("\n", array_minus_array ($textb, $texta)))."
-             </TD></TR></TABLE>";
-  return "<HR>".$diffab."<HR>";
 }
 
 // Parse diff output into nice HTML.

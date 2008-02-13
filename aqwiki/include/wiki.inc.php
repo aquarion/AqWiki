@@ -664,7 +664,44 @@ function wiki($wiki, $article){
 				$content[2] = $out;
 				break;
 			}
+		
+		case "allrev":
+		
+		
+			if (!$dataSource->pageExists($article)){
+				$content[2] = 'Error: Page doesn\'t exist. What are you playing at?';
+				break;		
+			}
 			
+			$content[2] = 'h2. Viewing all revisions for (('.$article."))\n\n";
+			
+			$content[2] .= 'Select the <input type="radio" /> boxes to compare two revisions';
+			
+			$content[2] .= '<form method="GET" action="'.$url.'">'."\n\n";
+			
+			$pages = $dataSource->getPage($article);
+			$pages = array_reverse($pages);
+			
+			
+			foreach ($pages as $row) {
+			
+				$line = '<input type="radio" name="from" value="'.$row['revision'].'">';
+				$line .= '<input type="radio" name="to" value="'.$row['revision'].'">';
+				
+				$line .= date("Y-m-d H:i",$row['created'])." - ".userlink($row['creator']);
+				if ($row['comment']){
+					$line .= " : ".$row['comment'];
+				}
+				$content[2] .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
+				." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
+			}
+			$content[2] .= '<input type="submit" value="Compare Revisions">
+			<input type="hidden" value="diff" name="action">
+			</form>';
+		
+			break;
+				
+				
 
 		default:
 			$_EXTRAS['versions'] = "";
