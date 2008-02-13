@@ -9,3 +9,39 @@
 [[USER]] = The current user
 [[AUTH]] = How the current user is logged in
 [[NEARBY]] = Pages that mention the current page
+
+[[INCLUDE|wikipage]] = Include the contents of Wikipage here.
+[[SETVAR|this|that]] = Set the page-context variable 'this' to 'that'
+
+[[VAR|this]] = Output the value of page-context variable 'this' (Contains
+contents of GET)
+
+[[RECENT]] = All recent page changes.
+[[INDEX]]  = Alphabetized list of all pages on the system.
+[[ALLBY|user]]  = List all pages by this user.
+[[SEARCH|term]] = Return all pages that currently contain the term 'term'
+
+('term' can be [[VAR|this]], so if you were to have a form that posted to
+/search with a GET variable of 'q', you could use: [[SEARCH|[[VAR|q]]|]] for a
+dynamic search thing.)
+
+[CC]stuff[CC] - Displays a literal ((stuff))
+[CMD]command[CMD] - Displays a literal [[command]]
+[[TEXTAREA]] - Displays a text area with the (unformated) contents of
+[[VAR|textarea]]
+
+Macros:
+
+[[MACRO|INIT|name]] - includes the file 'name' from "macros/" and initialises
+the class 'name' inside it.
+[[MACRO|LIST|all]] - List all Macros
+[[MACRO|name|command]] - Execute class method $command from within $name macro
+(Which needs to have been INITialised first)
+
+(There will be more macros documentation at some point in the future)
+
+Calendar:
+
+[[CAL|yyyy-mm-dd|event]] Add a calendar event for the date yyyy-mm-dd with the
+name 'event'
+[[CAL]] display a calender of all added events.
