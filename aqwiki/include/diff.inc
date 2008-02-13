@@ -103,8 +103,8 @@ function diff_compute($text1, $text2)
     $diff = join("\n", $output);
   }
 
- //unlink($temp1);
- // unlink($temp2);
+ unlink($temp1);
+ unlink($temp2);
 
   return $output;
 
