@@ -270,6 +270,11 @@ if(isset($_EXTRAS['reqUser'])){
 	doAuth($_EXTRAS['reqUser'], "enter");
 }
 
+if(isset($_EXTRAS['reqUsers'])){
+	debug("Requiring auth ".$_EXTRAS['reqAuth']);
+	doAuth($_EXTRAS['reqUsers'], "enter");
+}
+
 debug("Memory Track: ".number_format(memory_get_usage()));
 
 echo page($content);

@@ -19,7 +19,11 @@ function diff($text1, $text2){
 	$out = "<ol class=\"diffSection\">";
 	
 	foreach($diff as $line){
-	
+
+	if ($line[0] == '\\'){
+		continue;
+	}	
+
 	$class = '';
 	switch ($line[0]){
 		case '+':

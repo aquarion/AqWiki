@@ -206,6 +206,11 @@ function page($content){
 		$out = buildRSS($content);
 		break;
 
+	case "fragment":
+		header("Content-Type: text/html");
+		$out = process($content[2],$content[0]);
+		break;
+
 	case "source":
 		header("Content-Type: text/plain");
 		$out = $content[2];
@@ -329,7 +334,7 @@ function index(){
 		if ($return[$letter]){
 			$index = $letter;
 			$menu .= " | \"".$index."\":#$index";
-			$string .= "\n<a name=\"".$index."\"></a>\n\nh2. ".$index."\n\r\n\r";
+			$string .= "\n<a name=\"".$index."\"></a>\n\nh2. ".$index."\n\n";
 			$string .= menu($return[$letter]);
 		} else {
 			$menu .= " | ".$letter;

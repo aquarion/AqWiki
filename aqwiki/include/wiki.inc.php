@@ -759,8 +759,8 @@ function wiki($wiki, $article){
 					$_EXTRAS['versions'] .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
 					." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
 					$current++;
-					if ($current >= $limit && $_GET['action'] != "allrev"){
-						$_EXTRAS['versions'] .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
+					if ($_GET['action'] != "allrev"){
+						$_EXTRAS['versions'] .= "# \"Show list of revisions\":".$url."?action=allrev\n";
 						break;
 					}
 				}

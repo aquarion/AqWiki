@@ -128,6 +128,8 @@ function checkAuth($action){
 			if (isset($_EXTRAS['reqEdit'])){
 				if ($_EXTRAS['reqEdit'] == $_EXTRAS['me']){
 					return true;
+				} elseif ( ($_EXTRAS['reqEdit'] == 'register') && isset($_SERVER['PHP_AUTH_USER'])) {
+					return true;
 				}
 			} elseif(isset($_EXTRAS['reqEdits'])) {
 				if (in_array($_EXTRAS['me'],explode(",",$_EXTRAS['reqEdits']))){
