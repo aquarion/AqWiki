@@ -260,6 +260,13 @@ function process($text, $wiki){
 		$macro = $matches[1][$index];
 		$command = $matches[2][$index];
 
+		$params = false;
+
+		if($pos = strpos($command, '|')){
+			$params = explode(',', substr($command, $pos+1));
+			$command = substr($command, 0, $pos);
+		}
+
 		debug("Macro: $macro: $command");
 
 		if ($command == "INIT"){
@@ -285,7 +292,11 @@ function process($text, $wiki){
 			
 		} else {
 			#$return = call_user_func(array($macro, $command)); 
-			$return = $macros[$macro]->$command(); 
+			if($params){
+				$return = $macros[$macro]->$command($params); 
+			} else {
+				$return = $macros[$macro]->$command(); 
+			}
 		}
 
 		
@@ -381,7 +392,7 @@ function process($text, $wiki){
 	if(!isset($_EXTRAS['textarea'])){
 		$_EXTRAS['textarea'] = "";
 	}
-	$text = preg_replace("/\[\[TEXTAREA\]\]/",entitize($_EXTRAS['textarea']),$text);
+	$text = preg_replace("/\[\[TEXTAREA\]\]/",$_EXTRAS['textarea'],$text);
 
 
 	return $text;
@@ -639,12 +650,12 @@ function wiki($wiki, $article){
 			}
 
 			if ($text){
-				$_EXTRAS['textarea'] =  htmlentities($text);
+				$_EXTRAS['textarea'] =  $text;
 			} elseif (!$dataSource->pageExists($article)){
 				$_POST['comment'] = "Start of a brand new world";
 				$_EXTRAS['textarea'] = "";
 			} else {
-				$_EXTRAS['textarea'] = htmlentities(stripslashes($dataSource->getContent($article)));
+				$_EXTRAS['textarea'] = stripslashes($dataSource->getContent($article));
 			}
 			
 			if ($form){
