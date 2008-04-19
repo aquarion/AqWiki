@@ -269,13 +269,31 @@ function process($text, $wiki){
 
 		debug("Macro: $macro: $command");
 
-		if ($command == "INIT"){
+
+		if(!isset($macros[$macro])){
 			if (file_exists("macros/".$matches[1][$index].".inc")){
 				include("macros/".$matches[1][$index].".inc");
 				$macros[$macro] = new $macro($dataSource, $_EXTRAS);
-			} else {
-				$return = "Macro ".$matches[1][$index]." not defined";
 			}
+		}
+
+
+		if(!isset($macros[$macro])){
+			// Macro load failed.
+
+			$return = "*!!Macro ".$matches[1][$index]." not defined!!*";
+
+		} elseif ($command == "INIT"){
+			
+			// Explicit INIT disabled
+
+			//if (file_exists("macros/".$matches[1][$index].".inc")){
+			//	include("macros/".$matches[1][$index].".inc");
+			//	$macros[$macro] = new $macro($dataSource, $_EXTRAS);
+			//} else {
+			//	$return = "Macro ".$matches[1][$index]." not defined";
+			//}
+
 
 		} elseif($command == "LIST"){
 			$dir = opendir("macros");
