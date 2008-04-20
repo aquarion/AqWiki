@@ -662,9 +662,19 @@ function wiki($wiki, $article){
 					break;
 
 				case "Post":
-					$dataSource->post($article, $_POST['content'], $_POST['comment']);
-					$form = false;
-					header("location: $url");
+								
+					$page = array_shift($dataSource->getPage($article));
+										
+					if($page['rev_created'] > $_POST['edittime']){
+						$content[2] .=  collision_detection($page, $_POST);
+						$text = $_POST['content'];
+						//$form = false;				
+					} else {
+						$dataSource->post($article, $_POST['content'], $_POST['comment']);
+						$form = false;
+						header("location: $url");
+					}
+				
 			}
 
 			if ($text){
@@ -685,12 +695,13 @@ function wiki($wiki, $article){
 				$out .= "<textarea name=\"content\" id=\"content\" rows=\"30\" cols=\"72\">[[TEXTAREA]]</textarea>\n<br>\n";
 				$out .= "<label for=\"comment\">Comment</label>\n";
 				$out .= "<input type=\"text\" name=\"comment\" id=\"comment\" size=\"72\" value=\"".$_POST['comment']."\"><br>\n";
+				$out .= "<input type=\"hidden\" name=\"edittime\" value=\"".time()."\">\n";
 				$out .= "<input type=\"submit\" name=\"submit\" value=\"Post\">\n";
 				$out .= "<input type=\"submit\" name=\"submit\" value=\"Preview\">\n";
 				$out .= "<input type=\"submit\" name=\"submit\" value=\"Spell Check\">\n";
 				$out .= "<input type=\"reset\" name=\"revert\" value=\"Revert to pre-editing\">\n";
 				$out .= "</form>";
-				$content[2] = $out;
+				$content[2] .= $out;
 				break;
 			}
 		
@@ -800,5 +811,16 @@ function wiki($wiki, $article){
 
 }
 
+function collision_detection($current, $new){
+	$out = "h1. Mid-air collision detected\n\n";
+	
+	$out .= "While you were editing that, someone else submitted an edit. Below are the differences between them:\n\n";
+	
+	$out .= diff(wordwrap(stripslashes($new['content'])),wordwrap(stripslashes($current['content'])));
+	
+	$out .= "\n\nWhatever you submit now will be the new copy, please fold in the previous person's information. \n\n";
+	
+	return $out;
+}
 
 ?>

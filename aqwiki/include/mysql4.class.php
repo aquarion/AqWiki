@@ -453,7 +453,9 @@ class pearDB extends dataSource {
 	function getSQL($article, $crit = false){
 		$sql = "select "
 			."wikipage.*, revision.*, creatorname.username as origin, "
-			."unix_timestamp(revision.created) as created "
+			."unix_timestamp(revision.created) as created, "
+			."unix_timestamp(revision.created) as rev_created, "
+			."unix_timestamp(wikipage.created) as page_created "
 			."from wikipage, revision "
 			."left join users on revision.creator = users.id "
 			."left join users as creatorname on creatorname.id = creatorname.username "

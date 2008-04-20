@@ -196,16 +196,16 @@ if (isset($_COOKIE['me']) && isset($_COOKIE['password'])){
 if (MODE =="SHELL"){
 							
 } else {
-	if ($_SERVER['PHP_AUTH_USER']){
+	if (isset($_SERVER['PHP_AUTH_USER'])){
 		$_EXTRAS['me'] = $_SERVER['PHP_AUTH_USER'];
 		$_EXTRAS['auth'] = "username/password";
 		$_EXTRAS['id'] = $user['id'];
-	} elseif ($_COOKIE['me']){
+	} elseif (isset($_COOKIE['me'])){
 		$_EXTRAS['me'] = $_COOKIE['me'];
 		$_EXTRAS['auth'] = "cookie";
 	} else {
 		$headers = apache_request_headers();
-		if ($headers['X-Forwarded-For']){
+		if (isset($headers['X-Forwarded-For'])){
 			$_EXTRAS['me'] = $headers['X-Forwarded-For'];
 		} else {
 			$_EXTRAS['me'] = $_SERVER['REMOTE_ADDR'];

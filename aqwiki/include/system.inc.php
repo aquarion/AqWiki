@@ -149,13 +149,17 @@ function doAuth($requirement, $action = "access this"){
 
 	if ($_GET['action'] == "login"){
 		debug("Checking request for login");
-		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
-	} elseif ($_COOKIE['me'] && $_COOKIE['password']){
+		if(isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])){
+			$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+		}
+	} elseif (isset($_COOKIE['me']) && isset($_COOKIE['password'])){
 		debug("Using cookies");
 		$user = $dataSource->validateUser($_COOKIE['me'], $_COOKIE['password']);
 	} else {
 		debug("Using http auth");
-		$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+		if(isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])){
+			$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+		}
 	}
 
 
@@ -194,7 +198,7 @@ function doAuth($requirement, $action = "access this"){
 	  // Send HTTP 401 error to make the
 	  // browser prompt the user.
 	  header("WWW-AUTHENTICATE: " .
-			 "Basic realm=\"".$request[0]." Logon: " .
+			 "Basic realm=\"AqWiki Logon: " .
 			 "Please log in as  ".$req_message .
 			 " for access.\"");
 		header("HTTP/1.0 401 Unauthorized");
