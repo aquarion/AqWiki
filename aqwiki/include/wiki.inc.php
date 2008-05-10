@@ -386,7 +386,7 @@ function process($text, $wiki){
 		if (!$dataSource->pageExists($stripped)){
 			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
 			#$link =  "\"".$title."\":".$base."/".$stripped;	
-			$link = '<a href="'.$base."/".$stripped.'" class="uncreated wiki" title="Uncreated article '.$title.'">¿'.$title.'?</a>';
+			$link = '<a href="'.$base."/".$stripped.'" class="uncreated wiki" title="Uncreated article '.$title.'">'.$title.'</a>';
 		} else {
 			#$link =  "\"".$title."\":".$base."/".$stripped;
 			$link = '<a href="'.$base."/".$stripped.'" class="wiki" title="Internal link to article '.$title.'">'.$title.'</a>';

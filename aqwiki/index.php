@@ -151,7 +151,7 @@ if ($_SERVER['SERVER_PORT']) { // We're a website
 
 $_EXTRAS = $_REQUEST;
 
-$_EXTRAS['version'] = "0.0a";
+$_EXTRAS['version'] = "0.0b-SVN";
 
 $_EXTRAS['versionURL'] = 'http://aqwiki.sf.net/release?v='.$_EXTRAS['version'];
 
