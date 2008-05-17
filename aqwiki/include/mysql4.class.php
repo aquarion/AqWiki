@@ -173,11 +173,20 @@ class pearDB extends dataSource {
 	//function: newUser(username, name, password, email) - create a new user
 
 	function newUser($username, $name, $password, $email){
-		$sql = "insert into users (username, real_name, email, password, date_creation) "
+		
+		if(isset($_SERVER['HTTP_HOST'])){
+			$host = $_SERVER['HTTP_HOST'];
+		} else {
+			$host = 'local shell';
+		}
+		
+		$sql = "insert into users (username, real_name, email, password, date_creation, creationsite) "
 		.' values ("'.$_POST['username'].'", "'.$_POST['name']
 			.'", "'.$_POST['email'].'", "'.$_POST['password']
-			.'", NOW())';
-
+			.'", NOW(), "'.$host.'")';
+		
+		
+			
 		$this->query($sql);
 
 	}
@@ -450,7 +459,7 @@ class pearDB extends dataSource {
 	}
 
 
-	function getSQL($article, $crit = false){
+	protected function getSQL($article, $crit = false){
 		$sql = "select "
 			."wikipage.*, revision.*, creatorname.username as origin, "
 			."unix_timestamp(revision.created) as created, "
@@ -466,6 +475,19 @@ class pearDB extends dataSource {
 		$sql .= " order by revision.created desc";
 		
 		return $sql;
+	}
+	
+	function sql_as_array($sql){
+		
+		$result = $this->query($sql);
+
+		$array = array();
+		while ($row = $result->fetchRow(DB_FETCHMODE_ASSOC)) {
+			$array[] = $row;
+		}
+		return $array;
+		
+		
 	}
 }
 

@@ -104,6 +104,7 @@ function process($text, $wiki){
 	global $dataSource;
 	global $_EXTRAS;
 	global $_CONFIG;
+	
 
 	$text = $text."\n\n";
 
@@ -141,6 +142,7 @@ function process($text, $wiki){
 	}*/
 
 
+
 	preg_match_all("/\[\[INCLUDE\|(.*?)\]\]/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
 		$include = $dataSource->getContent($matches[1][$index]);
@@ -172,14 +174,12 @@ function process($text, $wiki){
 	}
 
 	
-
-
 	preg_match_all("/\[\[VAR\|(.*?)\]\]/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
 		$var = $_EXTRAS[$matches[1][$index]];
 		$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
 	}
-
+	
 
 	#$text = preg_replace("/\[\[SEARCH\|(.*?)\]\]/",searchFor($wiki,'\1'), $text);
 	#$text = preg_replace("/\[\[ALLBY\|(.*?)\]\]/",searchAuthor($wiki,'\1'), $text);
@@ -383,7 +383,13 @@ function process($text, $wiki){
 		$stripped = $matches[1];
 		$title = $matches[2];
 
-		if (!$dataSource->pageExists($stripped)){
+		if ($title[0] == '~'){
+			$title = substr($title, 1);
+			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
+			#$link =  "\"".$title."\":".$base."/".$stripped;	
+			$link = userLink($title);
+			
+		} elseif (!$dataSource->pageExists($stripped)){
 			#$link =  "%(uncreated)".$title."\"?\":".$base."/".$stripped."?action=edit%";
 			#$link =  "\"".$title."\":".$base."/".$stripped;	
 			$link = '<a href="'.$base."/".$stripped.'" class="uncreated wiki" title="Uncreated article '.$title.'">'.$title.'</a>';
@@ -397,6 +403,22 @@ function process($text, $wiki){
 		$text = preg_replace("/(\W|^)".$replace."(\W)/","$1$link$2", $text);
 		#$text = preg_replace("/(\W|^)".$replace."(\W)/","$1|$replace|$2", $text);
 	}
+
+
+	//preg_match_all("/<aqWikiNoProcess>(.*?)<\/aqwikiNoProcess>/m",$text, $matches);
+	
+	$text = str_replace("\n", '[[BR]]',$text);
+	$text = str_replace("\r", '',$text);
+	
+		
+	preg_match_all("/<aqWikiNoProcess>(.*?)<\/aqWikiNoProcess>/",$text, $matches);
+	foreach ($matches[0] as $index => $match){
+		$id = uniqid();
+		$EXTRAS['noProcess'][$id] = $matches[1][0];
+		$text = preg_replace("#".preg_quote($match,"#")."#",'[[NOPROCESS|'.$id.']]',$text);
+	}
+
+	$text = str_replace("[[BR]]", "\n",$text);
 
 	$text = textile($text);
 	#$text = ereg_replace("[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]\"/]", "<a href=\"\\0\">\\0</a>", $text);
@@ -412,6 +434,13 @@ function process($text, $wiki){
 	}
 	$text = preg_replace("/\[\[TEXTAREA\]\]/",$_EXTRAS['textarea'],$text);
 
+	preg_match_all("/\[\[NOPROCESS\|(.*?)\]\]/",$text, $matches);
+	foreach ($matches[0] as $index => $match){
+		$id = $matches[1][0];
+		$text = preg_replace("#".preg_quote($match,"#")."#",$EXTRAS['noProcess'][$id],$text);
+	}
+	
+	$text = str_replace("[[BR]]", "\n",$text);
 
 	return $text;
 }
@@ -425,6 +454,8 @@ function wiki($wiki, $article){
 	global $dataSource;
 	global $_CONFIG;
 	global $_EXTRAS;
+	
+	$out = '';
 
 	//if ($_CONFIG['oneWiki']){
 		$base = $_CONFIG['base'];
@@ -531,8 +562,20 @@ function wiki($wiki, $article){
 			.'|Display Name|<input type="text" name="name" value="'.$_POST['name'].'">|(Must not be blank)<br>|'."\n"
 			.'|e-Mail|<input type="text" name="email" value="'.$_POST['email'].'">|(Must not be blank)<br>|'."\n"
 			.'|Password|<input type="password" name="password">|(Must not be blank)<br>|'."\n"
-			.'|Repeat Password |<input type="password" name="password2">| (Must match above) |'."\n"
-			.'| Submit |<input type="submit" name="submit" value="Send Form">| Bow to my will |'."\n\n"
+			.'|Repeat Password |<input type="password" name="password2">| (Must match above) |'."\n\n";
+			
+			
+			if (isset($_CONFIG['recaptcha_public_key'])){
+				
+				require_once('recaptchalib.php');
+
+				$public_key = $_CONFIG['recaptcha_public_key'];
+				
+				$form .= '<aqWikiNoProcess>'.recaptcha_get_html($public_key)."</aqWikiNoProcess>\n\n";
+
+			} 
+			
+			$form .= '<input type="submit" name="submit" value="Create User">'."\n\n"
 			.'</form>';
 
 			#print_r($_POST);
@@ -566,6 +609,18 @@ function wiki($wiki, $article){
 				} elseif ($_POST['password'] != $_POST['password2']){
 					$errors[] = "passwords must match";
 				}
+				
+				/*if (isset($_CONFIG['recaptcha_private_key'])){
+					$privatekey = $_CONFIG['recaptcha_private_key'];
+					$resp = recaptcha_check_answer ($privatekey,
+					                                $_SERVER["REMOTE_ADDR"],
+					                                $_POST["recaptcha_challenge_field"],
+					                                $_POST["recaptcha_response_field"]);
+					
+					if (!$resp->is_valid) {
+					  $errors[] = "Captcha invalid";
+					}
+				}*/
 
 				if (count($errors) == 0){
 
@@ -786,6 +841,13 @@ function wiki($wiki, $article){
 					if ($row['comment']){
 						$line .= " : ".$row['comment'];
 					}
+					
+				
+				if ($_EXTRAS['current'] != $article){
+					$pages = $dataSource->getPage($_EXTRAS['current']);
+					$row = array_shift($pages);
+				}
+				
 				$_EXTRAS['versions'] .= "# ".$line." [ Current ]\n";
 
 				$limit = 4;

@@ -132,7 +132,6 @@ if ($_SERVER['SERVER_PORT']) { // We're a website
 	$request = explode('/',$url['path']);
 
 	
-	
 	if ($_CONFIG['stripFromStart']){ // Strip this number of directories from the start
 		$request = array_slice ($request, $_CONFIG['stripFromStart']);
 	}
@@ -150,6 +149,10 @@ if ($_SERVER['SERVER_PORT']) { // We're a website
 /* Send all get & post variables to an array called "Extras", which gets used lots. It's also a way to get at post, get and internal variables from inside macros, also, vice versa */
 
 $_EXTRAS = $_REQUEST;
+
+	$EXTRAS['noProcess'] = array();
+
+	$_EXTRAS['argv'] = $request;
 
 $_EXTRAS['version'] = "0.0b-SVN";
 
@@ -216,8 +219,8 @@ if (MODE =="SHELL"){
 }
 
 if (preg_match("/^~(.*)$/",$request[1],$match)) {
-	$content = user($request[0],$match[1]);
-	$_EXTRAS['current'] = $request[1];
+	$content = userpage($request[0],$match[1]);
+	$_EXTRAS['current'] = substr($request[1],1);
 	debug("User page ".$match);
 } elseif ($request[0]) {
 	// get Wiki Front Page
