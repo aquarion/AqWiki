@@ -205,7 +205,7 @@ if (MODE =="SHELL"){
 							
 } else {
 	if (isset($_SERVER['PHP_AUTH_USER'])){
-		$_EXTRAS['me'] = $_SERVER['PHP_AUTH_USER'];
+		$_EXTRAS['me'] = strtolower($_SERVER['PHP_AUTH_USER']);
 		$_EXTRAS['auth'] = "username/password";
 		$_EXTRAS['id'] = $user['id'];
 	} elseif (isset($_COOKIE['me'])){

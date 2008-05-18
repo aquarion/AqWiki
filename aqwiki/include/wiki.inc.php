@@ -503,7 +503,7 @@ function wiki($wiki, $article){
 		case "viewrev":
 
 			if(!$_GET['id']){
-				die("Parameters incorrect");
+				panic("View Revision","Parameters incorrect");
 			}
 
 			$id = $_GET['id'];
@@ -514,7 +514,15 @@ function wiki($wiki, $article){
 
 			$row = $pages[$id];
 			
-			$content[2] = $row['content'];#."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
+			$content[2] = '<div class="info"><b>Note:</b> This is a <i>specific revision</i> of this page, and may be outdated, The current version is ((here|'.$article.')). You can see the differences between this and the current revision <a href="'.$url.'?action=diff&amp;from='.$id.'">here</a></div>';
+			
+			if(in_array($_EXTRAS['me'], $_EXTRAS['admins']) ){
+				$content[2] .= '<div class="adminFunctions">Admin Actions: 
+				<a href="'.$url.'?action=revert&id='.$id.'">Revert back to this version</a>
+				</div>';
+			}
+			
+			$content[2] .= $row['content'];#."\n\n [ \"Edit This Page\":$url?action=edit | \"View Source\":$url?action=src ]";
 			$content[3] = $row['creator'];
 			$content[4] = date("r",$row['created']);
 
@@ -792,11 +800,12 @@ function wiki($wiki, $article){
 				break;		
 			}
 			
-			$content[2] = 'h2. Viewing all revisions for (('.$article."))\n\n";
+			$content[2] = '<form method="GET" action="'.$url.'" style="width: auto;">';
 			
-			$content[2] .= 'Select the <input type="radio" /> boxes to compare two revisions';
+			$content[2] .= '<h2>Viewing all revisions for (('.$article."))</h2>\n\n";
 			
-			$content[2] .= '<form method="GET" action="'.$url.'">'."\n\n";
+			$content[2] .= 'Select the <input type="radio" /> boxes to compare two revisions'."\n\n";
+			
 			
 			$pages = $dataSource->getPage($article);
 			$pages = array_reverse($pages);
@@ -819,7 +828,33 @@ function wiki($wiki, $article){
 			</form>';
 		
 			break;
+		
+		case "revert":
+		
+			if(!in_array($_EXTRAS['me'], $_EXTRAS['admins']) ){
+				panic('AqWiki Reversion', 'You\'re not an admin, you can\'t do this shit');
 				
+			}
+			
+		
+			if(!$_GET['id']){
+				die("Parameters incorrect");
+			}
+
+			$id = $_GET['id'];
+
+			$pages = $dataSource->getPage($article);
+			
+			$oldVersion = $pages[$id];
+
+			//die($oldVersion['content']);
+
+			$dataSource->post($article, $oldVersion['content'], 'reverted back to version '.$id);
+			
+			$form = false;
+			
+			$content[2] = 'Reverted (('.$article.')) back to version '.$id;
+			break;
 				
 
 		default:

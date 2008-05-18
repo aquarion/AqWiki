@@ -2,6 +2,7 @@
 
 class ikariam extends AqWikiMacro {
 
+	var $playerlistCache = false;
 
 	//var $data = false;
 	//var $settings = false;
@@ -43,16 +44,29 @@ function commaPlayerList($params){
 	return $this->genPlayerList($params, "<span style=\"color: %s\">%s</span> | ");
 }
 
-function dbPlayerList($params, $format){
+function getPlayerList(){
+	
+	if($this->playerlistCache !== false){
+		return $this->playerlistCache;
+	}
 	
 	$q = "select distinct user from ikariam_city";
-	
 	$res = $this->data->sql_as_array($q);
 	$roster = array();
 	foreach($res as $player){
 		$roster[$player['user']] = $player['user'];
 	}
 	
+	$this->playerlistCache = $roster;
+	return $roster;
+	
+}
+
+function dbPlayerList($params, $format){
+	
+	$q = "select distinct user from ikariam_city";
+	
+	$roster = $this->getPlayerList();
 	
 	$translationTable = array(
 		'Mort' => 'Khris',
@@ -143,7 +157,7 @@ function showcities($params){
 		$out .= '* '.$city->display();
 		
 		
-		if ($this->settings['me'] == $city->user){
+		if (strtolower($this->settings['me']) == strtolower($city->user)){
 			$out .= ' [<a href="cities?edit='.$city->get('id').'">Edit</a> | <a href="cities?delete='.$city->get('id').'">Delete</a>]';
 		}
 		
@@ -161,7 +175,7 @@ function savecities($params){
 		$city = new IkariamCity($this->data);
 		$city->load($this->settings['delete']);
 		
-		if ($this->settings['me'] != $city->user){
+		if (strtolower($this->settings['me']) != strtolower($city->user)){
 			panic("Ikariam Cities System", "You can only delete your own cities.","Nice try");
 		}
 		
@@ -177,7 +191,7 @@ function savecities($params){
 	$city->load($this->settings['city']);
 	
 		
-	if ($this->settings['me'] != $city->user){
+	if (strtolower($this->settings['me']) != strtolower($city->user)){
 		panic("Ikariam Cities System", "You can only edit your own cities.","Nice try");
 	}
 		
@@ -196,7 +210,7 @@ function savecities($params){
 function addcity(){
 	
 	if(!isset($this->settings['user_page']) || strcasecmp($this->settings['user_page'], $this->settings['me']) != 0){
-		return '';
+		return;
 	}
 	
 	
@@ -224,7 +238,7 @@ function cultureSlots($params){
 		$user = $params[0];
 	}
 	
-	return $culture->cultureSlotsBar($user, ($user == $this->settings['me']));
+	return $culture->cultureSlotsBar($user, (strtolower($user) == strtolower($this->settings['me'])));
 }
 
 
@@ -248,7 +262,7 @@ function saveTreaty(){
 			return ;
 		}
 		
-		if ($this->settings['me'] != $this->settings['user_page']){
+		if (strtolower($this->settings['me']) != strtolower($this->settings['user_page'])){
 			panic('Ikariam Treaties System', "You don't have permission to do that");
 			return ;
 		}
@@ -496,7 +510,7 @@ class IkariamCity {
 	
 	function delete(){
 		if(!$this->id){
-			panic("Ikariam Cities System", "Cannot delete unsaved city, moron.");
+			panic("Ikariam Cities System", "Cannot delete unsaved city.");
 		}
 		$q = sprintf("delete from ikariam_city where id = %d", $this->id);
 		$this->db_cxn->query($q);
@@ -768,8 +782,9 @@ EOW;
 				
 		$settings = $this->settings;
 		
-		if ($settings['me'] != $settings['user_page']){
-			return ;
+		if (strtolower($settings['me']) != strtolower($settings['user_page']) ){
+			
+			return $settings['me'].' != '.$settings['user_page'];
 		}
 		
 		$options = '';
@@ -817,7 +832,7 @@ EOW;
 				
 		$treaties = array();
 		foreach($raw_treaties as $treaty){
-			if ($treaty['initiator'] == $user){
+			if (strtolower($treaty['initiator']) == strtolower($user)){
 				$treaty['user'] = $treaty['acceptor'];
 			} else {
 				$treaty['user'] = $treaty['initiator'];

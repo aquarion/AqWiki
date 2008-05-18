@@ -368,10 +368,12 @@ function userpage($wiki, $author){
 		$base = $_CONFIG['base']."/".$dataSource->wiki;
 	}
 	
+	
 	$content = "h1. {$author}'s user page\n\n";
 	
 	$default = 'mypage';
 	
+	$author = strtolower($author);
 	
 	$menuItems = array();
 	
