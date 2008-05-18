@@ -370,17 +370,13 @@ function userpage($wiki, $author){
 	
 	$content = "h1. {$author}'s user page\n\n";
 	
-	$default = 'changes';
+	$default = 'mypage';
 	
 	
 	$menuItems = array();
 	
-	if ($dataSource->pageExists($author)){
-		$menuItems['mypage'] = 'Own Page';	
-		$default = 'mypage';
-	} 
 	
-	
+	$menuItems['mypage'] = 'Own Page';	
 	$menuItems['changes'] 	 = 'Recent Changes';
 	
 	if (strcasecmp($_EXTRAS['me'], $author) == 0){
@@ -421,10 +417,20 @@ function userpage($wiki, $author){
 			$content .= "h2. Contributions:\n\n[[ALLBY|".$author."]]";
 			break;
 			
+		case "management":
+		
+			$content .= "h2. Account Management\n\n...is not yet implemented, Stay tuned ;)";
+			break;
+			
 		case "mypage":
 		
-			$content .= "_This is a mirror of the wiki page (($author)), edits go there_\n\n[[INCLUDE|$author]]";
-			$_EXTRAS['versions'] = 'Versioning information & editing on "original page":'.$base.'/'.$author;
+			if ($dataSource->pageExists($author)){
+				$default = 'mypage';
+				$content .= "_This is a mirror of the wiki page (($author)), edits go there_\n\n[[INCLUDE|$author]]";
+				$_EXTRAS['versions'] = 'Versioning information & editing on "original page":'.$base.'/'.$author;
+			} else {
+				$content .= "This user's page is empty, ((fix this|$author))?";
+			}
 			break;
 			
 		default:	
@@ -530,11 +536,17 @@ function author($author){
 
 }
 
-function userLink($user){
+function userLink($user, $subsection = false){
 	global $_CONFIG;
 	$base = $_CONFIG['base'];
+	
+	if ($subsection){
+		$link = $user.'/'.$subsection;
+	} else {
+		$link = $user;
+	}
 
-	return '<a href="'.$base.'/~'.$user.'"><img src="http://imperial.istic.net/static/icons/silk/user.png" class="icon">'.$user.'</a>';
+	return '<nobr><a href="'.$base.'/~'.$link.'"><img src="http://imperial.istic.net/static/icons/silk/user.png" class="icon">'.$user.'</a></nobr>';
 }
 
 ?>

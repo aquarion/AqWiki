@@ -340,6 +340,18 @@ function process($text, $wiki){
 	}
 
 
+	preg_match_all("/\[\[VAR\|(.*?)\]\]/",$text, $matches);
+	foreach ($matches[0] as $index => $match){
+		if(isset($_EXTRAS[$matches[1][$index]])){
+		$var = $_EXTRAS[$matches[1][$index]];
+		} else {
+			$var = '[ERR: '.$matches[1][$index].' Undefined]';
+		}
+		$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
+	}
+	
+
+
 	foreach($calendar as $year => $ydata){
 		#ksort($ydata);
 		$months = array_keys($ydata);
@@ -414,9 +426,10 @@ function process($text, $wiki){
 	preg_match_all("/<aqWikiNoProcess>(.*?)<\/aqWikiNoProcess>/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
 		$id = uniqid();
-		$EXTRAS['noProcess'][$id] = $matches[1][0];
+		$EXTRAS['noProcess'][$id] = $matches[1][$index];
 		$text = preg_replace("#".preg_quote($match,"#")."#",'[[NOPROCESS|'.$id.']]',$text);
 	}
+	
 
 	$text = str_replace("[[BR]]", "\n",$text);
 
@@ -434,9 +447,19 @@ function process($text, $wiki){
 	}
 	$text = preg_replace("/\[\[TEXTAREA\]\]/",$_EXTRAS['textarea'],$text);
 
+	preg_match_all("/\[\[RAWVAR\|(.*?)\]\]/",$text, $matches);
+	foreach ($matches[0] as $index => $match){
+		if(isset($_EXTRAS[$matches[1][$index]])){
+		$var = $_EXTRAS[$matches[1][$index]];
+		} else {
+			$var = '[ERR: '.$matches[1][$index].' Undefined]';
+		}
+		$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
+	}
+
 	preg_match_all("/\[\[NOPROCESS\|(.*?)\]\]/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
-		$id = $matches[1][0];
+		$id = $matches[1][$index];
 		$text = preg_replace("#".preg_quote($match,"#")."#",$EXTRAS['noProcess'][$id],$text);
 	}
 	
@@ -742,19 +765,20 @@ function wiki($wiki, $article){
 			}
 			
 			if ($form){
-				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\">\n";
-				$out .= "<p>You should read the ((help)). If you are having problems with the formatting, post it and add a note explaining the problem to ((formattingProblems)) and I'll dive in and fix it. If you believe you've found a bug in the wiki software, post your problem to \"this wiki page\":http://www.gkhs.net/aqwikiBug and I'll dive in and fix that too.</p>\n";
-				$out .= "<label for=\"creator\">Author</label>\n";
-				$out .= $_EXTRAS['me']."<br>\n";
-				$out .= "<label for=\"content\">Content</label>\n";
+				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\" class=\"wikiedit\">";
+				$out .= '<h2>Editing "'.$content[1].'"</h2>';
+				$out .= "<p>You should read the ((help)). If you are having problems with the formatting, post it and add a note explaining the problem to ((formattingProblems)) and I'll dive in and fix it. If you believe you've found a bug in the wiki software, post your problem to \"the bug tracker\":http://trac.aqxs.net/aqwiki/newticket and I'll dive in and fix that too.</p>\n";
+				//$out .= "<label for=\"creator\">Author</label>\n";
+				//$out .= $_EXTRAS['me']."<br>\n";
+				$out .= "<label for=\"content\">Content of page \"".$content[1]."\"</label>\n";
 				$out .= "<textarea name=\"content\" id=\"content\" rows=\"30\" cols=\"72\">[[TEXTAREA]]</textarea>\n<br>\n";
 				$out .= "<label for=\"comment\">Comment</label>\n";
 				$out .= "<input type=\"text\" name=\"comment\" id=\"comment\" size=\"72\" value=\"".$_POST['comment']."\"><br>\n";
-				$out .= "<input type=\"hidden\" name=\"edittime\" value=\"".time()."\">\n";
-				$out .= "<input type=\"submit\" name=\"submit\" value=\"Post\">\n";
-				$out .= "<input type=\"submit\" name=\"submit\" value=\"Preview\">\n";
-				$out .= "<input type=\"submit\" name=\"submit\" value=\"Spell Check\">\n";
-				$out .= "<input type=\"reset\" name=\"revert\" value=\"Revert to pre-editing\">\n";
+				$out .= "<input class=\"submit\" type=\"hidden\" name=\"edittime\" value=\"".time()."\">\n";
+				$out .= "<input class=\"submit\" type=\"submit\" name=\"submit\" value=\"Post\"> ";
+				$out .= "<input class=\"submit\" type=\"submit\" name=\"submit\" value=\"Preview\"> ";
+				$out .= "<input class=\"submit\" type=\"submit\" name=\"submit\" value=\"Spell Check\"> ";
+				$out .= "<input class=\"submit\" type=\"reset\"  name=\"revert\" value=\"Revert to pre-editing\">\n";
 				$out .= "</form>";
 				$content[2] .= $out;
 				break;

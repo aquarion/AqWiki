@@ -115,6 +115,11 @@ $_CONFIG = array(
 
 $_CONFIG = array_merge($_CONFIG, parse_ini_file('etc/aqwiki.ini', true));
 
+if (file_exists('/etc/aqwiki.ini')){
+	debug("Including global config");
+	$_CONFIG = array_merge($_CONFIG, parse_ini_file('/etc/aqwiki.ini', true));
+}
+
 #$url = preg_replace("/".preg_quote($_CONFIG['base'],"/")."/","",$HTTP_SERVER_VARS['REDIRECT_URL']);
 $url = parse_url($_SERVER['REDIRECT_URL']); // Much better :-)
 

@@ -3,7 +3,7 @@ class AqWikiMacro {
 	var $data = false;
 	var $settings = false;
 
-	function __construct($data, $settings){
+	function __construct($data, &$settings){
 		$this->data = $data;
 		$this->settings = $settings;
 		
