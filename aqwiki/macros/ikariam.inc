@@ -213,6 +213,175 @@ function addcity(){
 	return $city->form('cities');
 }
 
+
+function cultureSlots($params){
+	
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	
+	if(count($params) == 0){
+		$user = $this->settings['user_page'];
+	} else {
+		$user = $params[0];
+	}
+	
+	return $culture->cultureSlotsBar($user, ($user == $this->settings['me']));
+}
+
+
+function addNewTreaty($params){
+	
+	
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	
+	if(count($params) == 0){
+		$user = $this->settings['user_page'];
+	} else {
+		$user = $params[0];
+	}
+	
+	return $culture->addNewTreaty($user);
+}
+
+function saveTreaty(){
+	
+		if(!isset($_POST['new_treaty_reciever'])){
+			return ;
+		}
+		
+		if ($this->settings['me'] != $this->settings['user_page']){
+			panic('Ikariam Treaties System', "You don't have permission to do that");
+			return ;
+		}
+		
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	
+	$res = $culture->saveTreaty();
+	
+	if(!$res){
+		return sprintf('<div style="border: 1px solid red; color: red">Couldn\'t add treaty: %s</div>', $culture->error);
+	}
+	
+}
+
+
+function deleteTreaty(){
+
+	if(!isset($this->settings['delete'])){
+		return ;
+	}
+	
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	
+	$res = $culture->deleteTreaty($this->settings['delete']);
+	
+	if($culture->error){
+		return sprintf('<div style="border: 1px solid red; color: red">%s</div>', $culture->error);
+	}
+}
+
+function showTreaties(){
+	if(count($params) == 0){
+		$user = $this->settings['user_page'];
+	} else {
+		$user = $params[0];
+	}
+	
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	$list = $culture->listTreaties($user);
+	
+	$out .= '';
+	
+	$sortedlist = array_keys($list);
+	natcasesort($sortedlist);
+	
+	foreach($sortedlist as $username){
+		$treaty = $list[$username];
+		$out .= "* ".userLink($treaty['user'])." [ <a href=\"cultural?delete=".$treaty['id']."\">Delete Treaty</a> ]\n";
+		
+	}
+	return $out;
+}
+
+
+function cultureGrid(){
+
+	global $_EXTRAS;
+	
+	
+	$q = "select * from ikariam_user order by user";
+	$res = $this->data->sql_as_array($q);
+	$slots = array();
+	foreach($res as $player){
+		$slots[$player['user']] = $player['culture_slots'];
+	}
+
+	$q = "select distinct user from ikariam_city order by user";
+	
+	$res = $this->data->sql_as_array($q);
+	
+	$roster = array();
+	$treaties = array();
+	
+	foreach($res as $player){
+		$roster[] = $player['user'];
+	}
+	
+	
+	$data = $this->data->sql_as_array('select * from ikariam_cultural order by initiator');
+	
+	foreach($data as $treaty){
+		$treaties[$treaty['initiator']][] = $treaty['acceptor'];
+		$treaties[$treaty['acceptor']][] = $treaty['initiator'];
+	}
+	
+	$out = '		
+	<div id="cultureGridBox"><table class="cultureGrid" dojoType="dojox.grid"><tr><th>User &<br/> (Free Slots)</th>';
+	foreach($roster as $player){
+		$out .= sprintf("<th class=\"horizontal\">%s</th>", implode(str_split($player), '<br/>'));
+	}
+	
+	$out .= '</tr>';
+	$odd = true;
+	
+	foreach($roster as $vertical){
+		$treaty = $treaties[$vertical];
+		
+		$odd = !$odd;
+		$even = $odd ? 'odd' : 'even';
+		
+		if (isset($slots[$vertical])){
+			$freeslots = $slots[$vertical];
+		} else {
+			$freeslots = 0;
+		}
+		
+		$out .= sprintf("<tr class=\"%s\"><th nowrap=\"nobr\">%s (%s)</th>", $even,  userLink($vertical, 'cultural'), $freeslots);
+		
+		
+		foreach($roster as $horizontal){			
+			$tick = '<img src="http://imperial.istic.net/static/icons/silk/tick.png" />';
+			
+			if ($horizontal == $vertical){
+				$class = 'match';
+			} else {
+				$class = '';
+			}
+			
+			$symbol = (in_array($horizontal,$treaty) ? $tick : '&nbsp;');
+			
+			$out .= sprintf("<td class=\"%s\">%s</td>", $class, $symbol);
+		}
+		$out .= "</tr>\n";
+	}
+	
+	$out .= '</table></div>
+		';
+	
+	$_EXTRAS['cultureGrid'] = $out;
+	
+	return '[[RAWVAR|cultureGrid]]';
+}
+
 } // End Ikariam Class
 
 
@@ -437,6 +606,227 @@ EOW;
 			$cities[] = $city;
 		}
 		return $cities;
+	}
+}
+
+
+
+class IkariamCulturalExchange {
+	/*
+	create table ikariam_cultural (
+			id int auto_increment, 
+			initiator tinytext,
+			acceptor  tinytext,
+			 modified timestamp,
+			 primary key(id)Pu	
+			 	
+	);
+	
+	create table ikariam_user (
+			user varchar(255), 
+			culture_slots tinyint,
+			 modified timestamp,
+			 primary key(user)
+	);	
+	*/
+	
+	protected $db_cxn;
+	
+	public $testFail;
+	
+	protected $id = false;
+	var $settings;
+	var $error;
+	
+	function get($var){
+		return $this->$var;
+	}
+	
+	function __construct(&$db_cxn = null, $settings = null){
+		if (is_null($db_cxn)){
+			panic('Ikariam Macro', 'DB not given', E_ERROR);	
+		} elseif (!is_subclass_of($db_cxn, 'dataSource')){
+			panic('Ikariam Macro', 'DB not a dataSource', get_class($db_cxn));	
+		} else {
+			$this->db_cxn = $db_cxn;
+		}
+		
+		$this->settings = $settings;
+	}
+	
+	
+	function cultureSlotsBar($user, $writable){
+				
+		if(isset($_POST['edit_culture_slots']) && $writable){
+			$q = sprintf('replace into ikariam_user (user, culture_slots) values ("%s", %d)', $user, $_POST['edit_culture_slots']);
+			$res = $this->db_cxn->query($q);
+		}
+		
+		$q = sprintf('select *, unix_timestamp(`modified`) as modified_epoch from ikariam_user where user = "%s"', $user);
+		$res = $this->db_cxn->sql_as_array($q);
+		
+		if(count($res) == 0){
+			$slots = 0;
+			$mod = 'Never';
+		} else {
+			$slots = $res[0]['culture_slots'];
+			$mod = $res[0]['modified'];
+		}
+		
+		if(!$writable){
+			return sprintf("%s has %d slots open. Last updated: %s", $user, $slots, $mod);
+		}
+		
+		
+		$out = <<<EOW
+<aqWikiNoProcess>
+	<form action="cultural" method="POST">
+	<h2>Culture Slots</h2>
+		
+	How many open culture slots do you have?
+		<div id="horizontalSlider" dojoType="dijit.form.HorizontalSlider"
+   value="{$slots}" minimum="0" maximum="15" discreteValues="16"
+   intermediateChanges="true"
+   onChange="dojo.byId('edit_culture_slots').value = arguments[0]; dojo.byId('edit_culture_slots').isValid();"
+   handleSrc="http://o.aolcdn.com/dojo/1.0.0/dijit/themes/tundra/images/preciseSliderThumb.png"
+>
+	
+	<input 
+			id="edit_culture_slots" 
+			name="edit_culture_slots" 
+			value="{$slots}"
+			type="text" size="2"
+			constraints="{min:0,max:150,places:0}"
+			required= "true"
+			/><input type="submit" value="Update" />
+   </div>
+   	
+   	
+	
+	</form>
+	
+
+	
+</aqWikiNoProcess>
+			
+EOW;
+		
+		return $out;
+	}
+	
+	function deleteTreaty($id){
+				
+		$q = sprintf("select * from ikariam_cultural where id = %d", $id);
+		$res = $this->db_cxn->sql_as_array($q);
+		if(count($res) == 0){
+			$this->error = "Cannot delete that treaty, it doesn't exist";
+		}
+		
+		$res = $res[0];
+		
+		if($res['initiator'] != $this->settings['me'] && $res['acceptor'] != $this->settings['me'] ){
+			$this->error = "Cannot delete that treaty, it isn't yours";
+		}
+		
+		$q = sprintf("delete from ikariam_cultural where id = %d limit 1", $id);
+		$this->db_cxn->query($q);
+		return true;
+	}
+	
+	function saveTreaty($user){
+		
+		if(!isset($_POST['new_treaty_reciever'])){
+			return true;
+		}
+		
+		if ($settings['me'] != $settings['user_page']){
+			panic('Ikariam Treaties System', "You don't have permission to do that");
+			return false;
+		}
+		
+		if (strtolower($this->settings['me']) == strtolower($_POST['new_treaty_reciever'])) {
+			$this->error = "Don't do that, you'll go blind.";
+			return false;
+		}
+		
+		
+		$q = sprintf('select * from ikariam_cultural where (initiator = "%1$s" and acceptor = "%2$s") or (initiator = "%2$s" and acceptor = "%1$s")', $this->settings['user_page'], $_POST['new_treaty_reciever']);
+			
+		if (count($this->db_cxn->sql_as_array($q)) != 0){
+			$this->error = "There is already a treaty registered between those people";
+			return false;
+		} else {
+			$q = sprintf('insert into ikariam_cultural (initiator, acceptor) values ("%1$s", "%2$s")',$this->settings['user_page'], $_POST['new_treaty_reciever']);
+			$this->db_cxn->query($q);
+			return true;
+		}
+		
+	}
+	
+	
+	function addNewTreaty(){
+				
+		$settings = $this->settings;
+		
+		if ($settings['me'] != $settings['user_page']){
+			return ;
+		}
+		
+		$options = '';
+		
+		$q = "select distinct user from ikariam_city order by user";
+		
+		$res = $this->db_cxn->sql_as_array($q);
+		foreach($res as $player){
+			$options .= sprintf('<option value="%s">%s</option>'."\n", $player['user'], $player['user']);
+		}
+
+		
+		
+		$out = <<<EOW
+		
+<aqWikiNoProcess>
+	<form action="cultural" method="POST">
+	<h2>Add new Treaty</h2>
+	I have <em>already</em> organised a treaty with 
+	
+	<select name="new_treaty_reciever"
+			dojoType="dijit.form.ComboBox"
+			autocomplete="true">
+			$options
+	</select>
+	
+	<input type="submit" value="Save" />
+   	<p>
+   		If your user isn't on the dropdown, type in their ikariam username or (if they're in the alliance) their wiki username. Only people who have cities in the Wiki's city database will appear in the dropdown. <b>They do not need to be in the drop-down to enter their name</b>.
+   	</p>
+	</form>
+	
+
+	
+</aqWikiNoProcess>
+			
+EOW;
+
+	return $out;
+	}
+	
+	function listTreaties($user){
+		$q = sprintf('select * from ikariam_cultural where (initiator = "%1$s" or acceptor = "%1$s")', $user);
+		$raw_treaties = $this->db_cxn->sql_as_array($q);
+				
+		$treaties = array();
+		foreach($raw_treaties as $treaty){
+			if ($treaty['initiator'] == $user){
+				$treaty['user'] = $treaty['acceptor'];
+			} else {
+				$treaty['user'] = $treaty['initiator'];
+			}
+			$treaties[$treaty['user']] = $treaty;
+		}
+		
+		ksort($treaties, SORT_STRING);
+		return $treaties;
 	}
 }
 ?>
