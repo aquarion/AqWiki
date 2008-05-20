@@ -527,7 +527,7 @@ function wiki($wiki, $article){
 			$content[4] = date("r",$row['created']);
 
 
-			$limit = 4;
+			$limit = 3;
 			$current = 0;
 
 			foreach ($pages as $row) {
@@ -550,8 +550,12 @@ function wiki($wiki, $article){
 				if ($id < $row['revision']){
 					// Nothing happens
 				} elseif (($current >= $limit && $_GET['action'] != "allrev") ){
-					$_EXTRAS['versions'] .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
-					break;
+					if ($id == $row['revision']){
+						$limit+=6;
+					} else {
+						$_EXTRAS['versions'] .= "# \"Show rest of revisions\":".$url."?action=allrev\n";
+						break;
+					}
 				}
 
 			}
@@ -588,7 +592,7 @@ function wiki($wiki, $article){
 			10 rows in set (0.05 sec)
 			*/
 
-			$form = '<form method=post action="'.$_SERVER['REQUEST_URI'].'">'."\n\n"
+			$form = '<form class="shiny" method=post action="'.$_SERVER['REQUEST_URI'].'"><h2>New User</h2>'."\n\n"
 			.'|Username|<input type="text" name="username" value="'.$_POST['username'].'">|(Must not be blank)|'."\n"
 			.'|Display Name|<input type="text" name="name" value="'.$_POST['name'].'">|(Must not be blank)<br>|'."\n"
 			.'|e-Mail|<input type="text" name="email" value="'.$_POST['email'].'">|(Must not be blank)<br>|'."\n"
@@ -909,7 +913,7 @@ function wiki($wiki, $article){
 				
 				$_EXTRAS['versions'] .= "# ".$line." [ Current ]\n";
 
-				$limit = 4;
+				$limit = 10;
 				$current = 0;
 
 				foreach ($pages as $row) {
@@ -920,7 +924,7 @@ function wiki($wiki, $article){
 					$_EXTRAS['versions'] .= "# ".$line." [ <a href=\"".$url."?action=viewrev&amp;id=".$row['revision']."\" title=\"View this revision\">View</a> |"
 					." <a href=\"".$url."?action=diff&amp;from=".$row['revision']."\"\" title=\"View differences between this and the current revision\">Diff</a> ]\n";
 					$current++;
-					if ($_GET['action'] != "allrev"){
+					if ($_GET['action'] != "allrev" && $current > $limit){
 						$_EXTRAS['versions'] .= "# \"Show list of revisions\":".$url."?action=allrev\n";
 						break;
 					}

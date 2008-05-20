@@ -191,8 +191,10 @@ function doAuth($requirement, $action = "access this"){
 		}
 	}
 	if (!$notAuth){
-		setcookie ("me", $_SERVER['PHP_AUTH_USER'],time()+3600000);
-		setcookie ("password", $_SERVER['PHP_AUTH_PW'],time()+3600000);
+		setcookie ("me", $user['username'],time()+3600000);
+		setcookie ("password", $user['password'],time()+3600000);
+		
+		return $user;
 	} else {
 	  // Bad or no username/password.
 	  // Send HTTP 401 error to make the

@@ -538,17 +538,33 @@ function author($author){
 
 }
 
-function userLink($user, $subsection = false){
+function userLink($username, $subsection = false){
 	global $_CONFIG;
+	global $_EXTRAS;
 	$base = $_CONFIG['base'];
 	
-	if ($subsection){
-		$link = $user.'/'.$subsection;
-	} else {
-		$link = $user;
-	}
+	global $dataSource;
 
-	return '<nobr><a href="'.$base.'/~'.$link.'"><img src="http://imperial.istic.net/static/icons/silk/user.png" class="icon">'.$user.'</a></nobr>';
+
+	
+		
+	if($user = $dataSource->userExists($username)){
+		
+		$link = $user['username'].($subsection ? '/'.$subsection : '');
+	
+		if (in_array($user['username'], $_EXTRAS['admins'])){
+			$image = 'http://imperial.istic.net/static/icons/silk/user_suit.png';
+		} else {
+			$image = 'http://imperial.istic.net/static/icons/silk/user.png';
+		}
+	
+		return '<nobr><a href="'.$base.'/~'.$link.'" class="userlink"><img src="'.$image.'" class="icon">'.$user['username'].'</a></nobr>';
+	} else {
+		
+		$link = $username.($subsection ? '/'.$subsection : '');
+		
+		return '<nobr><a href="'.$base.'/~'.$link.'" class="userlink notauser"><img src="http://imperial.istic.net/static/icons/silk/user_gray.png" class="icon">'.$username.'</a></nobr>';
+	}
 }
 
 ?>

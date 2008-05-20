@@ -35,6 +35,10 @@ function coordslink($x, $y, $title = false){
 	}
 }
 
+function coordsurl($x, $y, $title = false){
+	return sprintf('http://s7.ikariam.org/index.php?view=worldmap_iso&islandX=%1$d&islandY=%2$d', $x, $y);
+}
+
 
 function playerList($params){
 	return $this->dbPlayerList($params, "<big style=\"font-size: x-large;color: %s\">&bull;</big> ((~%s))\n");
@@ -68,13 +72,6 @@ function dbPlayerList($params, $format){
 	
 	$roster = $this->getPlayerList();
 	
-	$translationTable = array(
-		'Mort' => 'Khris',
-		'tamara' => 'Troo',
-		'__multi' => 'Multiple Towns',
-	
-	);
-	
 	$display = array();
 	
 	
@@ -94,7 +91,7 @@ function dbPlayerList($params, $format){
 	
 	
 	
-	return implode(array_values($display), '').sprintf($format, $multi, 'Multiple Towns');
+	return implode(array_values($display), '');#.sprintf($format, $multi, 'Multiple Towns');
 	
 }
 
@@ -140,7 +137,7 @@ function genPlayerList($params, $format){
 	
 	
 	
-	return implode(array_values($display), '').sprintf($format, $multi, 'Multiple Towns');
+	return implode(array_values($display), '');#.sprintf($format, $multi, 'Multiple Towns');
 	
 
 }
@@ -338,14 +335,15 @@ function cultureGrid(){
 	
 	foreach($res as $player){
 		$roster[] = $player['user'];
+		$treaties[strtolower($player['user'])] = array();
 	}
 	
 	
 	$data = $this->data->sql_as_array('select * from ikariam_cultural order by initiator');
 	
 	foreach($data as $treaty){
-		$treaties[$treaty['initiator']][] = $treaty['acceptor'];
-		$treaties[$treaty['acceptor']][] = $treaty['initiator'];
+		$treaties[strtolower($treaty['initiator'])][] = strtolower($treaty['acceptor']);
+		$treaties[strtolower($treaty['acceptor'])][]  = strtolower($treaty['initiator']);
 	}
 	
 	$out = '		
@@ -358,7 +356,7 @@ function cultureGrid(){
 	$odd = true;
 	
 	foreach($roster as $vertical){
-		$treaty = $treaties[$vertical];
+		$treaty = $treaties[strtolower($vertical)];
 		
 		$odd = !$odd;
 		$even = $odd ? 'odd' : 'even';
@@ -381,7 +379,7 @@ function cultureGrid(){
 				$class = '';
 			}
 			
-			$symbol = (in_array($horizontal,$treaty) ? $tick : '&nbsp;');
+			$symbol = (in_array(strtolower($horizontal),$treaty) ? $tick : '&nbsp;');
 			
 			$out .= sprintf("<td class=\"%s\">%s</td>", $class, $symbol);
 		}
@@ -394,6 +392,244 @@ function cultureGrid(){
 	$_EXTRAS['cultureGrid'] = $out;
 	
 	return '[[RAWVAR|cultureGrid]]';
+}
+
+
+function drawMap(){
+
+$out = <<<EOW
+
+
+
+<script type="text/javascript">
+
+var highlights = [false, false, false, false, false, false];
+
+
+var IkariamMap = {
+
+	attachHighlighting : function(){
+		$$('.highlightTown').each(function(n){
+			n.observe('click', IkariamMap.highlightPlayer.bindAsEventListener(n));
+			n.addClassName('highlightPlayer');
+			//console.debug(n.childNodes[0].data);
+		});
+
+	},
+
+
+
+	highlightPlayer : function(n){
+		highlight = false;
+		value = false;
+		index = 0;
+		playername = this.childNodes[0].data.toLowerCase();
+			
+		console.debug(playername);
+		
+		if (this.highlighted == true){
+			console.debug('Should unhighlight. Sharnt');
+			
+			highlights.each(function(value){
+				if ( value == playername){
+					highlight = index;
+				}
+				index ++;
+			});
+			
+			
+			console.debug("UnHighlighting "+playername+" with "+highlight);
+			$$('.player'+playername)[0].removeClassName('highlightPlayer'+highlight);
+			highlights[highlight] = false;
+			
+			
+			$$('a.town'+playername).each(function(town){
+				town.removeClassName('highlightPlayer'+highlight);
+			});
+			
+			this.highlighted = false;
+			
+			return true;
+			
+		}
+
+
+
+		highlights.each(function(value){
+			if ( value == false){
+				highlight = index;
+			}
+			index ++;
+		});
+
+
+		if (highlight == false){
+			alert("Please unhighlight someone, I'm out of colours");
+			return;
+		} else {
+			highlights[highlight] = playername;
+		}
+
+		console.debug("Highlighting "+playername+" with "+highlight);
+
+		$$('a.town'+playername).each(function(town){
+			//console.debug("Highlighting "+town);
+			//console.debug(town.src);
+			//town.src = 'highlight-'+highlight+'.png';
+			town.addClassName('highlightPlayer'+highlight);
+		});
+		
+		
+		$$('.player'+playername)[0].addClassName('highlightPlayer'+highlight);
+
+		
+		this.highlighted = true;
+	
+	
+	}
+		
+}
+
+
+Event.observe(window, 'load', function() {
+	//console.debug('load'),
+  IkariamMap.attachHighlighting()
+});
+
+
+
+
+
+
+</script>
+
+<style type="text/css">
+
+#map {
+	height: 500px;
+	width: 500px;
+	background-image: url('/static/map/empty.png');
+	color: #EEE;
+	position: relative;
+	z-index: 50;
+}
+
+.town {
+	display: block;
+	background: #CCCCFF;
+	height: 1%;
+	width:  1%;
+	position: absolute;
+}
+
+#map a {
+	color: #EEE;
+	text-decoration: none;
+	display: relative;
+	z-index: 100;
+}
+
+#map a img {
+	border: none;
+}
+
+span.highlightPlayer {
+	color: #555;
+	text-decoration: underline;
+}
+
+
+
+
+span.highlightPlayer1 {
+	color: #FF0000;
+}
+a.highlightPlayer1 {
+	background: #FF0000;
+}
+
+span.highlightPlayer2 {
+	color: #9933FF;
+}
+a.highlightPlayer2 {
+	background: #9933FF;
+}
+
+span.highlightPlayer3 {
+	color: #FF6600;
+}
+a.highlightPlayer3 {
+	background: #FF6600;
+}
+
+span.highlightPlayer4 {
+	color: #339933;
+}
+a.highlightPlayer4 {
+	background: #339933;
+}
+
+span.highlightPlayer5 {
+	color: #0000FF;
+}
+a.highlightPlayer5 {
+	background: #0000FF;
+}
+</style>
+ 
+<div id='map'>
+EOW;
+
+
+$cities = $this->data->sql_as_array("select *, concat(x,':',y) as coords from ikariam_city");
+
+//for ($y = 0; $y < 100; $y++){
+//	for ($x = 0; $x < 100; $x++){
+
+
+foreach($cities as $cityData){
+	$class = '';
+	$title = '';
+	
+	$coords = $cityData['coords'];
+	$x = $cityData['x'];
+	$y = $cityData['y'];
+	
+	$city = new IkariamCity($this->data);
+	$city->load($cityData);
+	
+	$class = 'town town'.strtolower($city->user);
+	
+
+	$title = sprintf('Town of %s belonging to %s, Harvesting %s', $city->name, $city->user, $city->resourceText());
+	
+	$out .= '<a href="'.$this->coordsurl($x, $y).'" class="'.$class.'" title="'.$title.'" style="position: absolute; top: '.$y.'%; left: '.$x.'%;">';
+	$out .= '</a>';
+}
+
+$out .= '</div>';
+
+$userlist = $this->getPlayerList();
+natcasesort($userlist);
+
+$out .= '<p>Click a name to highlight their towns. Click a town to go to it in the game</p>';
+
+$out .= '<div id="userlist">| ';
+
+foreach($userlist as $user){
+	if(!empty($user)){
+	$out .= '<span class="highlightTown player'.strtolower($user).'" player="'.strtolower($user).'">'.$user.'</span> | ';
+	}
+}
+
+$out .= '</div>';
+
+
+	global $_EXTRAS;
+	$_EXTRAS['ikariamMap'] = $out;
+	
+	return '[[RAWVAR|ikariamMap]]';
+
 }
 
 } // End Ikariam Class
@@ -517,10 +753,19 @@ class IkariamCity {
 	}
 		
 	function resourceImage($const){
+		
+		
 			if($const == IkariamCity::UNKNOWN){
 				return 'http://imperial.istic.net/static/icons/silk/help.png';
 			}
+			return sprintf('/static/icons/%s_small.gif', IkariamCity::resourceText($const));
+	}
+	
+	function resourceText($const){
 		
+			if($const == IkariamCity::UNKNOWN){
+				return 'Unknown';
+			}
 			$resources = array(
 					IkariamCity::CRYSTAL => 'Crystal',
 					IkariamCity::WINE    => 'Wine',
@@ -528,7 +773,7 @@ class IkariamCity {
 					IkariamCity::SULPHUR => 'Sulphur'
 			);
 				
-			return sprintf('/static/icons/%s_small.gif', $resources[$const]);
+			return sprintf($resources[$const]);
 	}
 	
 	function display(){
@@ -558,7 +803,7 @@ class IkariamCity {
 		
 		$form = <<<EOW
 <aqWikiNoProcess>
-<form method="POST" action="$action" id="Add City">
+<form method="POST" class="shiny" action="$action" id="Add City">
 <h2>$title</h2>
 <dl>
 	$idElement
@@ -694,7 +939,7 @@ class IkariamCulturalExchange {
 		
 		$out = <<<EOW
 <aqWikiNoProcess>
-	<form action="cultural" method="POST">
+	<form action="cultural" method="POST" class="shiny">
 	<h2>Culture Slots</h2>
 		
 	How many open culture slots do you have?
@@ -784,7 +1029,7 @@ EOW;
 		
 		if (strtolower($settings['me']) != strtolower($settings['user_page']) ){
 			
-			return $settings['me'].' != '.$settings['user_page'];
+			return '';
 		}
 		
 		$options = '';
@@ -801,7 +1046,7 @@ EOW;
 		$out = <<<EOW
 		
 <aqWikiNoProcess>
-	<form action="cultural" method="POST">
+	<form action="cultural" method="POST" class="shiny">
 	<h2>Add new Treaty</h2>
 	I have <em>already</em> organised a treaty with 
 	

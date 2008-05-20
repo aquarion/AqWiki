@@ -199,7 +199,12 @@ class pearDB extends dataSource {
 		if ($result->numRows() == 0){
 			return false;
 		} else {
+					
 			$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
+			
+			
+			$sql = $this->query(sprintf('update users set last_access = NOW() where id = %d', $row['id']));
+			
 			if (isset($row['realname'])){
 			$name = explode(" ", $row['realname']);
 			$first = array_shift($name);
@@ -219,6 +224,19 @@ class pearDB extends dataSource {
 			);
 		}
 	} // end validateUser
+	
+	
+	//function: userExists(page) - does a wiki already have this user?
+	function userExists($user){
+		$sql = sprintf('select username from users where username = "%s"', $user);
+		$result = $this->query($sql);
+		if ($result->numRows() == 0){
+			return false;
+		} else {
+			$row = $result->fetchRow(DB_FETCHMODE_ASSOC);
+			return $row; 
+		}
+	}
 
 
 	//function: unique(field, data, existingData) - Check a field is unique
