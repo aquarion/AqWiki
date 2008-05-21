@@ -288,6 +288,17 @@ function page($content){
 			global $DEBUG;
 			$out .= "<p>".implode("<br>\n",$DEBUG)."</p>";
 		}
+		
+		
+		preg_match_all("/\[\[RAWVAR\|(.*?)\]\]/",$out, $matches);
+		foreach ($matches[0] as $index => $match){
+			if(isset($_EXTRAS[$matches[1][$index]])){
+			$var = $_EXTRAS[$matches[1][$index]];
+			} else {
+				$var = '';
+			}
+			$out = preg_replace("#".preg_quote($match,"#")."#",$var, $out);
+		}
 
 	
 	}

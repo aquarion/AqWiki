@@ -318,6 +318,23 @@ function cultureGrid(){
 
 	global $_EXTRAS;
 	
+	if (!isset($_EXTRAS['included_dojo'])){
+		$_EXTRAS['included_dojo'] = true;
+		$_EXTRAS['head'] .= '
+		
+		<style type="text/css">
+			@import "http://o.aolcdn.com/dojo/1.0.0/dijit/themes/tundra/tundra.css";
+		</style>
+		
+		<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojo/dojo.xd.js"
+			djConfig="parseOnLoad: true"></script>
+		<script type="text/javascript">
+		   dojo.require("dojo.parser");
+		   dojo.require("dijit.form.Slider");
+		   dojo.require("dijit.form.ComboBox");
+		</script>
+		';
+	}
 	
 	$q = "select * from ikariam_user order by user";
 	$res = $this->data->sql_as_array($q);
@@ -785,6 +802,7 @@ class IkariamCity {
 		
 		$level = intval($this->level);
 		
+		global $_EXTRAS;		
 		
 		if($this->id !== false){
 			$title = "Edit City ".$this->name;
@@ -800,6 +818,25 @@ class IkariamCity {
 		$sel_wine    = ($this->resource == IkariamCity::WINE     ? $selected : '');
 		$sel_sulphur = ($this->resource == IkariamCity::SULPHUR  ? $selected : '');
 		$sel_marble  = ($this->resource == IkariamCity::MARBLE   ? $selected : '');
+
+
+		if (!isset($_EXTRAS['included_dojo'])){
+			$_EXTRAS['included_dojo'] = true;
+			$_EXTRAS['head'] .= '
+			
+			<style type="text/css">
+				@import "http://o.aolcdn.com/dojo/1.0.0/dijit/themes/tundra/tundra.css";
+			</style>
+			
+			<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojo/dojo.xd.js"
+				djConfig="parseOnLoad: true"></script>
+			<script type="text/javascript">
+			   dojo.require("dojo.parser");
+			   dojo.require("dijit.form.Slider");
+			   dojo.require("dijit.form.ComboBox");
+			</script>
+			';
+		}
 		
 		$form = <<<EOW
 <aqWikiNoProcess>
@@ -915,6 +952,8 @@ class IkariamCulturalExchange {
 	
 	
 	function cultureSlotsBar($user, $writable){
+
+
 				
 		if(isset($_POST['edit_culture_slots']) && $writable){
 			$q = sprintf('replace into ikariam_user (user, culture_slots) values ("%s", %d)', $user, $_POST['edit_culture_slots']);
@@ -934,6 +973,26 @@ class IkariamCulturalExchange {
 		
 		if(!$writable){
 			return sprintf("%s has %d slots open. Last updated: %s", $user, $slots, $mod);
+		}
+
+		global $_EXTRAS;
+
+		if (!isset($_EXTRAS['included_dojo'])){
+			$_EXTRAS['included_dojo'] = true;
+			$_EXTRAS['head'] .= '
+			
+			<style type="text/css">
+				@import "http://o.aolcdn.com/dojo/1.0.0/dijit/themes/tundra/tundra.css";
+			</style>
+			
+			<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojo/dojo.xd.js"
+				djConfig="parseOnLoad: true"></script>
+			<script type="text/javascript">
+			   dojo.require("dojo.parser");
+			   dojo.require("dijit.form.Slider");
+			   dojo.require("dijit.form.ComboBox");
+			</script>
+			';
 		}
 		
 		
@@ -1041,7 +1100,25 @@ EOW;
 			$options .= sprintf('<option value="%s">%s</option>'."\n", $player['user'], $player['user']);
 		}
 
-		
+
+		global $_EXTRAS;
+		if (!isset($_EXTRAS['included_dojo'])){
+			$_EXTRAS['included_dojo'] = true;
+			$_EXTRAS['head'] .= '
+			
+			<style type="text/css">
+				@import "http://o.aolcdn.com/dojo/1.0.0/dijit/themes/tundra/tundra.css";
+			</style>
+			
+			<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojo/dojo.xd.js"
+				djConfig="parseOnLoad: true"></script>
+			<script type="text/javascript">
+			   dojo.require("dojo.parser");
+			   dojo.require("dijit.form.Slider");
+			   dojo.require("dijit.form.ComboBox");
+			</script>
+			';
+		}		
 		
 		$out = <<<EOW
 		
