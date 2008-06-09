@@ -138,6 +138,21 @@ function checkAuth($action){
 			} else {
 				return true;
 			}
+			
+		case "enter":
+			if (isset($_EXTRAS['reqUser'])){
+				if ($_EXTRAS['reqUser'] == $_EXTRAS['me']){
+					return true;
+				} elseif ( ($_EXTRAS['reqUser'] == 'register') && isset($_SERVER['PHP_AUTH_USER'])) {
+					return true;
+				}
+			} elseif(isset($_EXTRAS['reqUsers'])) {
+				if (in_array($_EXTRAS['me'],explode(",",$_EXTRAS['reqUsers']))){
+					return true;
+				}
+			} else {
+				return true;
+			}
 	}
 	return false;
 }
@@ -165,7 +180,7 @@ function doAuth($requirement, $action = "access this"){
 
 	$notAuth = true;
 	if (strstr($requirement,',')){
-		$requirement = explode(",",$requirement);
+		$requirement = explode(",",strtolower($requirement));
 		$req_message = "member of the group allowed to ".$action;
 		if (in_array(strtolower($user['username']), $requirement)){
 			$notAuth = false;
@@ -536,6 +551,20 @@ function parse_ini_str($Str,$ProcessSections = TRUE) {
      } while ($Temp = strtok("\r\n"));
    }
    return $Data;
+}
+
+function sendAdminEmail($subject, $content){
+	
+	global $_CONFIG;
+	global $_EXTRAS;
+	
+	$to      = $_CONFIG['admin_email'];
+	$subject = 'AqWiki '.$subject;
+	$message = $content.print_r($_EXTRAS,1);
+	$headers = 'From: webmaster@example.com' . "\r\n" .
+	    'X-Mailer: AqWiki';
+
+	mail($to, $subject, $message, $headers);
 }
 
 ?>

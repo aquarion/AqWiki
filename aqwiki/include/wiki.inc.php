@@ -391,7 +391,7 @@ function process($text, $wiki){
 	}
 
 	foreach($links as $index => $matches){
-		$replace = preg_quote($matches[0]);
+		$replace = preg_quote($matches[0], '/');
 		$stripped = $matches[1];
 		$title = $matches[2];
 
@@ -622,7 +622,7 @@ function wiki($wiki, $article){
 				} elseif(strstr($_POST['username'],",")){
 					$errors[] = "Username cannot contain commas";
 				} elseif(in_array($_POST['username'], $_EXTRAS['reservedUsers'])){
-					$errors[] = "Username cannot contain commas";
+					$errors[] = "Username invalid";
 				} elseif (!$dataSource->unique("users", "username", $_POST['username'])){
 					$errors[] = "Username must be unique";
 				}	
@@ -645,7 +645,7 @@ function wiki($wiki, $article){
 					$errors[] = "passwords must match";
 				}
 				
-				/*if (isset($_CONFIG['recaptcha_private_key'])){
+				if (isset($_CONFIG['recaptcha_private_key'])){
 					$privatekey = $_CONFIG['recaptcha_private_key'];
 					$resp = recaptcha_check_answer ($privatekey,
 					                                $_SERVER["REMOTE_ADDR"],
@@ -655,11 +655,13 @@ function wiki($wiki, $article){
 					if (!$resp->is_valid) {
 					  $errors[] = "Captcha invalid";
 					}
-				}*/
+				}
 
 				if (count($errors) == 0){
 
 					$dataSource->newUser($_POST['username'], $_POST['name'], $_POST['password'], $_POST['email']);
+					
+					sendAdminEmail('New User Created', $_POST);
 
 					$out = "h2. New user created\n\n";
 					$out .= "Hi, ".$_POST['name'].", Welcome to this aqWiki install.\n\n";
@@ -777,7 +779,7 @@ function wiki($wiki, $article){
 			}
 			
 			if ($form){
-				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\" class=\"wikiedit\">";
+				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\" class=\"shiny wikiedit\">";
 				$out .= '<h2>Editing "'.$content[1].'"</h2>';
 				$out .= "<p>You should read the ((help)). If you are having problems with the formatting, post it and add a note explaining the problem to ((formattingProblems)) and I'll dive in and fix it. If you believe you've found a bug in the wiki software, post your problem to \"the bug tracker\":http://trac.aqxs.net/aqwiki/newticket and I'll dive in and fix that too.</p>\n";
 				//$out .= "<label for=\"creator\">Author</label>\n";

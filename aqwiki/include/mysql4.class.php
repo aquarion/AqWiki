@@ -218,7 +218,7 @@ class pearDB extends dataSource {
 				'id' => $row['id'], 
 				'firstname' => $first, 
 				'lastname' => $rest, 
-				'username' => $username, 
+				'username' => $row['username'], 
 				'email' => (isset($row['email'])? $row['email'] : ""),
 				'url' => (isset($row['url'])? $row['url'] : "")
 			);
