@@ -39,6 +39,6 @@ newwikis = true
 ; 1 would strip "this" and '3' would strip "this/is/a"
 ; The only reason you would want to do this is if you're doing magic with
 ; htaccess and you find that the generated path is wrong and you
-; need to trim some off. Fortunatly, so do I :-)
+; need to trim some off. Fortunatly, so did I :-)
 
 stripFromStart = 1

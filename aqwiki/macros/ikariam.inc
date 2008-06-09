@@ -307,7 +307,7 @@ function showTreaties(){
 	
 	foreach($sortedlist as $username){
 		$treaty = $list[$username];
-		$out .= "* ".userLink($treaty['user'])." [ <a href=\"cultural?delete=".$treaty['id']."\">Delete Treaty</a> ]\n";
+		$out .= "# ".userLink($treaty['user'])." [ <a href=\"cultural?delete=".$treaty['id']."\">Delete Treaty</a> ]\n";
 		
 	}
 	return $out;
@@ -649,6 +649,146 @@ $out .= '</div>';
 
 }
 
+
+///////////////////////////////////////////////////////// Graphical Map
+
+function graphicalMap($params = false){
+
+
+	$cities = $this->data->sql_as_array("select *, concat(x,':',y) as coords from ikariam_city");
+
+
+	if (!file_exists('macros/colours.txt')){
+		return 'Could not find colours file '.getcwd();
+	}
+
+	$colours = file('macros/colours.txt');
+
+	$players = $this->getPlayerList();
+
+	foreach($players as $player){
+		$players[strtolower($player)] = explode("\t", array_shift($colours));
+	}
+
+
+
+
+	/* Set up image */
+
+	if (isset($_GET['size'])){
+		$size = $_GET['size'];
+	} else {
+		$size = 600;
+	}
+
+	if (isset($_GET['level'])){
+		$level = $_GET['level'];
+	} else {
+		$level = 0;
+	}
+	if (isset($_GET['text'])){
+		$text = false;
+	} else {
+		$text = true;
+	}
+
+
+
+	$center = round($size/2);
+
+	$myImage = imagecreatetruecolor ($size, $size);
+	imagesavealpha($myImage, true);
+
+	$trans_colour = imagecolorallocatealpha($myImage, 0, 0, 0, 127);
+	imagefill($myImage, 0, 0, $trans_colour);
+	
+
+
+	$check1 = imagecolorallocatealpha($myImage, 225, 225, 225, 127);
+	$check2 = imagecolorallocatealpha($myImage, 225, 225, 225, 124);
+
+
+	Imageinterlace($myImage, 1);
+
+
+
+
+	// Draw Grid
+
+	$cell = $size/100;
+
+	$x = 0;
+	$y = 0;
+	$odd = false;
+
+	while ($x < $size){
+		//ImageLine($myImage, $x, 0, $x, $size, $grey);
+		//ImageLine($myImage, 0, $y, $size, $y, $grey);
+		//ImageLine($myImage, $x, $y, $x, $y+$size);
+		$y = 0;
+		while ($y < $size){
+			imagefilledrectangle  ($myImage  , $x  , $y  , $x+$cell-1  , $y+$cell-1  , $odd ? $check1 : $check2  );
+			$y += $cell;
+			$odd = !$odd;
+		}
+		$x+=$cell;
+		$odd = !$odd;
+	}
+
+	$cell = $size/100;
+
+	foreach($cities as $cityData){
+		$class = '';
+		$title = '';
+		
+		$coords = $cityData['coords'];
+		$x = $cityData['x']-1;
+		$y = $cityData['y']-1;
+
+		$color = $players[strtolower($cityData['user'])];
+
+		$blue = ImageColorAllocate($myImage, hexdec($color[1]), hexdec($color[2]), hexdec($color[3]));
+
+		imagefill  ($myImage , $x*$cell  , $y*$cell  , $blue  );
+		
+	}
+
+	header("Content-type: image/png");
+	Imagepng($myImage);
+	Imagedestroy($myImage);  
+	return;
+
+}
+
+
+function colouredPlayerList($params = false){
+
+	if (!file_exists('macros/colours.txt')){
+		return 'Could not find colours file '.getcwd();
+	}
+
+	$colours = file('macros/colours.txt');
+
+	$players = $this->getPlayerList();
+
+	foreach($players as $player){
+		
+		$colour = explode("\t", array_shift($colours));
+
+		$output .= '<span style="color: #'.$colour[1].$colour[2].$colour[3].'" >'.$player.' ('.$colour[0].')</span> | ';
+
+	}
+
+	global $_EXTRAS;
+
+	$id = uniqid('box');
+
+	$_EXTRAS[$id] = $output;
+
+	return '| [[RAWVAR|'.$id.']]';
+}
+
+
 } // End Ikariam Class
 
 
@@ -972,7 +1112,7 @@ class IkariamCulturalExchange {
 		}
 		
 		if(!$writable){
-			return sprintf("%s has %d slots open. Last updated: %s", $user, $slots, $mod);
+			return sprintf("%s has %d slot%s open. Last updated: %s", $user, $slots, ($slots == 1 ? '' : 's'), $mod);
 		}
 
 		global $_EXTRAS;
@@ -1038,12 +1178,18 @@ EOW;
 		$res = $this->db_cxn->sql_as_array($q);
 		if(count($res) == 0){
 			$this->error = "Cannot delete that treaty, it doesn't exist";
+			return;
 		}
 		
 		$res = $res[0];
 		
-		if($res['initiator'] != $this->settings['me'] && $res['acceptor'] != $this->settings['me'] ){
+		$initiator = strtolower($res['initiator']);
+		$acceptor = strtolower($res['acceptor']);
+		$me = strtolower($this->settings['me']);
+		
+		if($initiator != $me && $acceptor != $me) {
 			$this->error = "Cannot delete that treaty, it isn't yours";
+			return;
 		}
 		
 		$q = sprintf("delete from ikariam_cultural where id = %d limit 1", $id);
@@ -1120,7 +1266,7 @@ EOW;
 			';
 		}		
 		
-		$out = <<<EOW
+		$out = '
 		
 <aqWikiNoProcess>
 	<form action="cultural" method="POST" class="shiny">
@@ -1135,7 +1281,7 @@ EOW;
 	
 	<input type="submit" value="Save" />
    	<p>
-   		If your user isn't on the dropdown, type in their ikariam username or (if they're in the alliance) their wiki username. Only people who have cities in the Wiki's city database will appear in the dropdown. <b>They do not need to be in the drop-down to enter their name</b>.
+   		If your user isn\'t on the dropdown, type in their ikariam username or (if they\'re in the alliance) their wiki username. Only people who have cities in the Wiki\'s city database will appear in the dropdown. <b>They do not need to be in the drop-down to enter their name</b>.
    	</p>
 	</form>
 	
@@ -1143,7 +1289,7 @@ EOW;
 	
 </aqWikiNoProcess>
 			
-EOW;
+';
 
 	return $out;
 	}
@@ -1166,4 +1312,5 @@ EOW;
 		return $treaties;
 	}
 }
+
 ?>

@@ -1,0 +1,137 @@
+Almond	EE	D9	C4
+Antique Brass	C8	8A	65
+Apricot	FD	D5	B1
+Aquamarine	71	D9	E2
+Asparagus	7B	A0	5B
+Atomic Tangerine	FF	99	66
+Awesome	FF	20	52
+Beaver	92	6F	5B
+Bear Hug	6B	65	5A
+Best Friends	D6	00	FF
+Bittersweet	FE	6F	5E
+Black	00	00	00
+Blizzard Blue	A3	E3	ED
+Blue	00	66	FF
+Blue Bell	99	99	CC
+Blue Green	00	95	B6
+Blue Violet	64	56	B7
+Brick Red	C6	2D	42
+Brink Pink	FB	60	7F
+Brown	AF	59	3E
+Burnt Orange	FF	70	34
+Burnt Sienna	E9	74	51
+Cadet Blue	A9	B2	C3
+Caribbean Green	00	CC	99
+Carnation Pink	FF	A6	C9
+Cerise	DA	32	87
+Cerulean	02	A4	D3
+Chartreuse	FF	99	66
+Chestnut	B9	4E	48
+Copper	DA	8A	67
+Cornflower	93	CC	EA
+Cotton Candy	FF	B7	D5
+Cranberry	DB	50	79
+Dandelion	FE	D8	5D
+Denim	15	60	BD
+Desert Sand	ED	C9	AF
+Eggplant	61	40	51
+Famous	E7	20	94
+Fern	63	B7	6C
+Flesh	FF	CB	A4
+Forest Green	5F	A7	77
+Fuchsia	C1	54	C1
+Fun in the Sun	FF	55	00
+Fuzzy Wuzzy Brown	C4	56	55
+Giving Tree	21	E3	39
+Gold	E6	BE	8A
+Goldenrod	FC	D6	67
+Granny Smith Apple	9D	E0	93
+Gray	8B	86	80
+Green	01	A3	68
+Green Yellow	F1	E7	88
+Happy Ever After	21	8E	B5
+Hot Magenta	FF	00	CC
+Inch Worm	B0	E3	13
+Indian Red	B9	4E	48
+Indigo	4F	69	C6
+Jazzberry Jam	A5	0B	5E
+Jungle Green	29	AB	87
+Lavender	FB	AE	D2
+Macaroni and Cheese	FF	B9	7B
+Magenta	F6	53	A6
+Magic Mint	AA	F0	D1
+Mahogany	CA	34	35
+Manatee	8D	90	A1
+Mango Tango	E7	72	00
+Maroon	C3	21	48
+Mauvelous	F0	91	A9
+Melon	FE	BA	AD
+Midnight Blue	00	33	66
+Mountain Meadow	1A	B3	85
+Mulberry	C5	4B	8C
+Navy Blue	00	66	CC
+Neon Carrot	FF	99	33
+Olive Green	B5	B3	5C
+Orange	FF	68	1F
+Orchid	E2	9C	D2
+Outer Space	2D	38	3A
+Outrageous Orange	FF	60	37
+Pacific Blue	00	9D	C4
+Peach	FF	CB	A4
+Periwinkle	C3	CD	E6
+Pig Pink	FD	D7	E4
+Pine Green	01	79	6F
+Pink Flamingo	FF	66	FF
+Plum	84	31	79
+Prussian Blue	00	33	66
+Purple Heart	65	2D	C1
+Purple Mountain's Majesty	96	78	B6
+Purple Pizzazz	FF	00	CC
+Radical Red	FF	35	5E
+Raw Sienna	D2	7D	46
+Razzle Dazzle Rose	FF	33	CC
+Razzmatazz	E3	0B	5C
+Red	ED	0A	3F
+Red Orange	FF	3F	34
+Red Violet	BB	33	85
+Robin's Egg Blue	00	CC	CC
+Royal Purple	6B	3F	A0
+Salmon	FF	91	A4
+Scarlet	FD	0E	35
+Screamin' Green	66	FF	66
+Sea Green	93	DF	B8
+Sepia	9E	5B	40
+Shadow	83	70	50
+Shamrock	33	CC	99
+Shocking Pink	FF	6F	FF
+Silver	C9	C0	BB
+Sky Blue	76	D7	EA
+Spring Green	EC	EB	BD
+Sunglow	FF	CC	33
+Sunset Orange	FE	4C	40
+Super Happy	FF	FF	21
+Tan	FA	9D	5A
+Tickle Me Pink	FC	80	A5
+Timberwolf	D9	D6	CF
+Torch Red	FD	0E	35
+Tropical Rain Forest	00	75	5E
+Tumbleweed	DE	A6	81
+Turquoise Blue	6C	DA	E7
+Ultra Green	66	FF	66
+Ultra Orange	FF	60	37
+Ultra Pink	FF	6F	FF
+Ultra Red	FD	5B	78
+Ultra Yellow	FF	FF	66
+Unmellow Yellow	FF	FF	66
+Violet (Purple)	83	59	A3
+Violet Red	F7	46	8A
+Vivid Tangerine	FF	99	80
+Vivid Violet	80	37	90
+White	FF	FF	FF
+Wild Blue Yonder	7A	89	B8
+Wild Strawberry	FF	33	99
+Wild Watermelon	FD	5B	78
+Wisteria	C9	A0	DC
+Yellow	FB	E8	70
+Yellow Green	C5	E1	7A
+Yellow Orange	FF	AE	42
