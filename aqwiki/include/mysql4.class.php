@@ -228,7 +228,7 @@ class pearDB extends dataSource {
 	
 	//function: userExists(page) - does a wiki already have this user?
 	function userExists($user){
-		$sql = sprintf('select username from users where username = "%s"', $user);
+		$sql = sprintf('select id, username from users where username = "%s"', $user);
 		$result = $this->query($sql);
 		if ($result->numRows() == 0){
 			return false;

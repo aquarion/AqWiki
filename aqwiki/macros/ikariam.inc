@@ -40,11 +40,11 @@ function coordsurl($x, $y, $title = false){
 }
 
 
-function playerList($params){
+function playerList($params = false){
 	return $this->dbPlayerList($params, "<big style=\"font-size: x-large;color: %s\">&bull;</big> ((~%s))\n");
 }
 
-function commaPlayerList($params){
+function commaPlayerList($params = false){
 	return $this->genPlayerList($params, "<span style=\"color: %s\">%s</span> | ");
 }
 
@@ -55,12 +55,17 @@ function getPlayerList(){
 	}
 	
 	$q = "select distinct user from ikariam_city";
+	//$q = "select distinct users.username as user from ikariam_city, users where ikariam_city.user = users.username";
+
+
 	$res = $this->data->sql_as_array($q);
 	$roster = array();
 	foreach($res as $player){
 		$roster[$player['user']] = $player['user'];
 	}
 	
+	natcasesort($roster);
+
 	$this->playerlistCache = $roster;
 	return $roster;
 	
@@ -165,7 +170,7 @@ function showcities($params){
 	
 }
 
-function savecities($params){
+function savecities($params = false){
 	
 	
 	if(isset($this->settings['delete'])){
@@ -414,6 +419,9 @@ function cultureGrid(){
 
 function drawMap(){
 
+$players = $this->getPlayerColours();
+
+
 $out = <<<EOW
 
 
@@ -440,13 +448,14 @@ var IkariamMap = {
 		highlight = false;
 		value = false;
 		index = 0;
-		playername = this.childNodes[0].data.toLowerCase();
+		//playername = this.childNodes[0].data.toLowerCase();
+		playername = this.attributes['player'].nodeValue;
+
+		//console.dir(this);
 			
 		console.debug(playername);
 		
 		if (this.highlighted == true){
-			console.debug('Should unhighlight. Sharnt');
-			
 			highlights.each(function(value){
 				if ( value == playername){
 					highlight = index;
@@ -455,13 +464,13 @@ var IkariamMap = {
 			});
 			
 			
-			console.debug("UnHighlighting "+playername+" with "+highlight);
-			$$('.player'+playername)[0].removeClassName('highlightPlayer'+highlight);
+			console.debug("UnHighlighting "+playername);
+			$$('.player'+playername)[0].removeClassName('highlightPlayer'+playername);
 			highlights[highlight] = false;
 			
 			
 			$$('a.town'+playername).each(function(town){
-				town.removeClassName('highlightPlayer'+highlight);
+				town.removeClassName('highlightPlayer'+playername);
 			});
 			
 			this.highlighted = false;
@@ -471,33 +480,17 @@ var IkariamMap = {
 		}
 
 
-
-		highlights.each(function(value){
-			if ( value == false){
-				highlight = index;
-			}
-			index ++;
-		});
-
-
-		if (highlight == false){
-			alert("Please unhighlight someone, I'm out of colours");
-			return;
-		} else {
-			highlights[highlight] = playername;
-		}
-
-		console.debug("Highlighting "+playername+" with "+highlight);
+		console.debug("Highlighting "+playername);
 
 		$$('a.town'+playername).each(function(town){
-			//console.debug("Highlighting "+town);
+			console.debug("Highlighting "+town);
 			//console.debug(town.src);
 			//town.src = 'highlight-'+highlight+'.png';
-			town.addClassName('highlightPlayer'+highlight);
+			town.addClassName('highlightPlayer'+playername);
 		});
 		
 		
-		$$('.player'+playername)[0].addClassName('highlightPlayer'+highlight);
+		$$('.player'+playername)[0].addClassName('highlightPlayer'+playername);
 
 		
 		this.highlighted = true;
@@ -533,7 +526,7 @@ Event.observe(window, 'load', function() {
 
 .town {
 	display: block;
-	background: #CCCCFF;
+	background: #EEEEEE;
 	height: 1%;
 	width:  1%;
 	position: absolute;
@@ -555,8 +548,10 @@ span.highlightPlayer {
 	text-decoration: underline;
 }
 
+EOW;
 
 
+/*
 
 span.highlightPlayer1 {
 	color: #FF0000;
@@ -564,41 +559,37 @@ span.highlightPlayer1 {
 a.highlightPlayer1 {
 	background: #FF0000;
 }
+*/
 
-span.highlightPlayer2 {
-	color: #9933FF;
-}
-a.highlightPlayer2 {
-	background: #9933FF;
-}
+foreach($players as $player => $colour){
 
-span.highlightPlayer3 {
-	color: #FF6600;
-}
-a.highlightPlayer3 {
-	background: #FF6600;
-}
+	$player = preg_replace('/\W/', '', $player);
 
-span.highlightPlayer4 {
-	color: #339933;
+$out .= '
+
+span.highlightPlayer'.$player.' {
+	border: 1px solid red;
 }
-a.highlightPlayer4 {
-	background: #339933;
+span.Player'.$player.' {
+	color: #'.$colour[1].$colour[2].$colour[3].';
+}
+a.highlightPlayer'.$player.' {
+	background: #'.$colour[1].$colour[2].$colour[3].';
 }
 
-span.highlightPlayer5 {
-	color: #0000FF;
+';
+
 }
-a.highlightPlayer5 {
-	background: #0000FF;
-}
+
+
+$out .= <<<EOW
 </style>
  
 <div id='map'>
 EOW;
 
 
-$cities = $this->data->sql_as_array("select *, concat(x,':',y) as coords from ikariam_city");
+$cities = $this->data->sql_as_array("select ikariam_city.*, users.username as user, concat(x,':',y) as coords from ikariam_city, users where ikariam_city.user = users.username");
 
 //for ($y = 0; $y < 100; $y++){
 //	for ($x = 0; $x < 100; $x++){
@@ -615,7 +606,7 @@ foreach($cities as $cityData){
 	$city = new IkariamCity($this->data);
 	$city->load($cityData);
 	
-	$class = 'town town'.strtolower($city->user);
+	$class = 'town town'.preg_replace('/\W/', '', $city->user);
 	
 
 	$title = sprintf('Town of %s belonging to %s, Harvesting %s', $city->name, $city->user, $city->resourceText());
@@ -635,7 +626,8 @@ $out .= '<div id="userlist">| ';
 
 foreach($userlist as $user){
 	if(!empty($user)){
-	$out .= '<span class="highlightTown player'.strtolower($user).'" player="'.strtolower($user).'">'.$user.'</span> | ';
+		$pid = preg_replace('/\W/', '', $user);
+		$out .= '<span class="highlightTown player'.$pid.'" player="'.$pid.'">'.$user.'</span> | ';
 	}
 }
 
@@ -657,20 +649,8 @@ function graphicalMap($params = false){
 
 	$cities = $this->data->sql_as_array("select *, concat(x,':',y) as coords from ikariam_city");
 
-
-	if (!file_exists('macros/colours.txt')){
-		return 'Could not find colours file '.getcwd();
-	}
-
-	$colours = file('macros/colours.txt');
-
-	$players = $this->getPlayerList();
-
-	foreach($players as $player){
-		$players[strtolower($player)] = explode("\t", array_shift($colours));
-	}
-
-
+	
+	$players = $this->getPlayerColours(true);
 
 
 	/* Set up image */
@@ -760,8 +740,8 @@ function graphicalMap($params = false){
 
 }
 
+function getPlayerColours($forceCase = false){
 
-function colouredPlayerList($params = false){
 
 	if (!file_exists('macros/colours.txt')){
 		return 'Could not find colours file '.getcwd();
@@ -771,11 +751,28 @@ function colouredPlayerList($params = false){
 
 	$players = $this->getPlayerList();
 
-	foreach($players as $player){
-		
-		$colour = explode("\t", array_shift($colours));
+	foreach($players as $player => $playerN){
+		if ($forceCase){
+			unset($players[$player]);
+			$player = strtolower($player);
+		}
+		$players[$player] = explode("\t", array_shift($colours));
+	}
 
-		$output .= '<span style="color: #'.$colour[1].$colour[2].$colour[3].'" >'.$player.' ('.$colour[0].')</span> | ';
+
+	return $players;
+
+
+
+}
+
+function colouredPlayerList($params = false){
+
+	$players = $this->getPlayerColours();
+
+	foreach($players as $player => $colour){
+		
+		$output .= '<span style="color: #'.$colour[1].$colour[2].$colour[3].'" title="'.$colour[0].'">'.$player.'</span> | ';
 
 	}
 
@@ -918,7 +915,7 @@ class IkariamCity {
 			return sprintf('/static/icons/%s_small.gif', IkariamCity::resourceText($const));
 	}
 	
-	function resourceText($const){
+	function resourceText($const = 0){
 		
 			if($const == IkariamCity::UNKNOWN){
 				return 'Unknown';

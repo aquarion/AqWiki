@@ -155,9 +155,10 @@ if ($_SERVER['SERVER_PORT']) { // We're a website
 
 $_EXTRAS = $_REQUEST;
 
-	$EXTRAS['noProcess'] = array();
+$EXTRAS['noProcess'] = array();
 
-	$_EXTRAS['argv'] = $request;
+$_EXTRAS['argv'] = $request;
+$_EXTRAS['head'] = '';
 
 $_EXTRAS['version'] = "0.0b-SVN";
 
@@ -279,9 +280,9 @@ if(isset($_EXTRAS['reqUser'])){
 	doAuth($_EXTRAS['reqUser'], "enter");
 }
 
-if(isset($_EXTRAS['reqUsers'])){
+if(isset($_EXTRAS['reqAuth'])){
 	debug("Requiring auth ".$_EXTRAS['reqAuth']);
-	doAuth($_EXTRAS['reqUsers'], "enter");
+	doAuth($_EXTRAS['reqAuth'], "enter");
 }
 
 debug("Memory Track: ".number_format(memory_get_usage()));

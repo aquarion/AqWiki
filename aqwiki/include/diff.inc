@@ -20,21 +20,26 @@ function diff($text1, $text2){
 	
 	foreach($diff as $line){
 
-	if ($line[0] == '\\'){
-		continue;
-	}	
-
-	$class = '';
-	switch ($line[0]){
-		case '+':
-			$class = 'added';
-			break;
-			
-		case '-':
-			$class = 'removed';
-			break;
+	if(!empty($line)){
+	
+		if ($line[0] == '\\'){
+			continue;
+		}	
+	
+		$class = '';
+		switch ($line[0]){
+			case '+':
+				$class = 'added';
+				break;
+				
+			case '-':
+				$class = 'removed';
+				break;
+		}
+	} else {
+		$class = '';
 	}
-		$out .= '<li class="diff '.$class.'">'.$line."</li>\n";
+		$out .= '<li class="diff '.$class.'">'.htmlentities($line)."</li>\n";
 	
 		/*if (is_numeric($line[0])){
 			$out.= "</ol><ol class=\"diffSection\">";

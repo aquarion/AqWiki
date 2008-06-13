@@ -18,82 +18,6 @@
 	Revision 1.23  2006/10/10 09:32:47  aquarion
 	* Development 2006
 	
-	Revision 1.22  2005/02/16 17:13:38  aquarion
-	* Database fixes
-	* New Textile Library support
-	* Developement resumes, yay
-	
-	Revision 1.21  2004/10/22 13:56:08  aquarion
-	* Fixed Stuff
-	
-	Revision 1.20  2004/09/29 15:11:19  aquarion
-	Fixing formatting bug (Links at the very end of the
-		text were not being recognised)
-	
-	Revision 1.19  2004/09/29 10:49:50  aquarion
-	+ Fixed character encoding bugs
-	
-	Revision 1.18  2004/09/05 10:16:48  aquarion
-	Moved versions and edit this page to templates
-	
-	Revision 1.17  2004/08/30 01:26:00  aquarion
-	+ Added 'stripDirectories' option, because mod_rewrite doesn't like me much
-	* Fixed non-mysql4 search. We now work with mysql 4.0! and probably 3! Woo!
-	+ Added 'newuser' to the abstracted data class. No idea how I missed it, tbh.
-	
-	Revision 1.16  2004/08/29 20:27:12  aquarion
-	* Cleaning up auth system
-	+ restrictNewPages configuration option
-	+ Restrict usernames (Don't contain commas or be 'register')
-	
-	Revision 1.15  2004/08/29 17:25:08  aquarion
-	Install:
-	   * Fixed various SQL statement errors (Appended semi-colons) (MP)
-	   * aqwiki.ini.orig now refered to as such, rather than aqwiki.orig
-	   - Removed  CHARSET=latin1;
-	Config:
-	   * 'base' needs preceeding slash
-	Wiki:
-	   + "source" output mode (elements.inc.php)
-	   * Fixed add-user (mysql4.class.php)
-	   + Created 'mysql' datasource (for versions <4) and moved
-	   	relivant sections to it. We now support mysql4. W00t :-)
-		(mysql4.class.php - which needs rearranging and possibly
-		renaming)
-	   * Made ((-)) notation support ((~Aquarion)) urls (Possibly should
-	   	make this an ini-config option for those who don't want
-		~user urls)
-	   * After a sucessful posting, system now redirects you to the new
-	   	entry, meaning that hitting "refresh" after you've submitted
-		an entry doesn't make it submit it again.
-	
-	Revision 1.14  2004/08/15 16:04:03  aquarion
-	+ Fix bugs 1009244, 1009268 & 1009266
-	+ Fixed other things
-	
-	Revision 1.13  2004/08/14 11:09:42  aquarion
-	+ Artistic Licence
-	+ Actual Documentation (Shock)
-	+ Config examples
-	+ Install guide
-	
-	Revision 1.12  2004/08/13 21:01:43  aquarion
-	* Fixed diff to make it work with the new data abstraction layer
-	
-	Revision 1.11  2004/08/12 19:37:53  aquarion
-	+ RSS output
-	+ Detailed RSS output for Recent
-	* Slight redesign of c/datasource (recent now outputs an array) to cope with above
-	* Fixed Recent to cope with oneWiki format
-	+ added Host configuation directive
-	
-	Revision 1.10  2004/07/05 20:29:05  aquarion
-	* Lets try actually using _real_ CVS keywords, not words I guess at this time
-	+ [[AQWIKI]] template tag
-	+ Default template finally exists! Sing yay!
-	* Fixed Non-oneWiki [[BASE]] by adding $_EXTRAS['wiki']
-	* Minor fixen
-	
 
 *******************************************************************************/
 
@@ -318,7 +242,9 @@ function process($text, $wiki){
 		}
 
 		
-		$text = preg_replace("#".preg_quote($matches[0][$index],"#")."#",$return,$text);
+		#$text = preg_replace("#".preg_quote($matches[0][$index],"#")."#",$return,$text);
+		$text = str_replace($matches[0][$index], $return , $text);
+
 		$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
 
@@ -333,9 +259,9 @@ function process($text, $wiki){
 	$caltext = "";
 
 	foreach($matches[0] as $index => $match){
-		$regex = "/".preg_quote($matches[0][$index],"/");
+
 		$link = preg_replace("/(\W)/", "", $matches[4][$index]);
-		$text = preg_replace($regex."/","<a name=\"".$link."\"></a>",$text);
+		$text = str_replace($matches[0][$index], "<a name=\"".$link."\"></a>" , $text);
 		$calendar[$matches[1][$index]][$matches[2][$index]][$matches[3][$index]] = $matches[4][$index];
 	}
 
@@ -347,7 +273,8 @@ function process($text, $wiki){
 		} else {
 			$var = '[ERR: '.$matches[1][$index].' Undefined]';
 		}
-		$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
+		#$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
+		$text = str_replace($match, $var , $text);
 	}
 	
 
@@ -427,8 +354,10 @@ function process($text, $wiki){
 	foreach ($matches[0] as $index => $match){
 		$id = uniqid();
 		$EXTRAS['noProcess'][$id] = $matches[1][$index];
-		$text = preg_replace("#".preg_quote($match,"#")."#",'[[NOPROCESS|'.$id.']]',$text);
+		#$text = preg_replace("#".preg_quote($match,"#")."#",'[[NOPROCESS|'.$id.']]',$text);
+		$text = str_replace($match,  '[[NOPROCESS|'.$id.']]', $text);
 	}
+	
 	
 
 	$text = str_replace("[[BR]]", "\n",$text);
@@ -436,16 +365,19 @@ function process($text, $wiki){
 	$text = textile($text);
 	#$text = ereg_replace("[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]\"/]", "<a href=\"\\0\">\\0</a>", $text);
 	#$text = preg_replace("#<a href=\"<a href=\"(.*)\">(.*)\"</a>>(.*)</a>#","<a href=\"$1\">$3</a>",$text);
-	$text = preg_replace("/\[\[CAL\]\]/","<div class=\"calendar\">".$caltext."</div>", $text);
 	$text = preg_replace("/\[CC\](.*?)\[CC\]/","(($1))",$text);
-
 	$text = preg_replace("/\[CMD\](.*?)\[CMD\]/","[[$1]]",$text);
+	
+	$text = str_replace('[[CAL]]', "<div class=\"calendar\">".$caltext."</div>" , $text);
 
 
 	if(!isset($_EXTRAS['textarea'])){
 		$_EXTRAS['textarea'] = "";
 	}
 	$text = preg_replace("/\[\[TEXTAREA\]\]/",$_EXTRAS['textarea'],$text);
+	$text = str_replace('[[TEXTAREA]]' , $_EXTRAS['textarea'], $text);
+
+
 
 	preg_match_all("/\[\[RAWVAR\|(.*?)\]\]/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
@@ -454,16 +386,19 @@ function process($text, $wiki){
 		} else {
 			$var = '[ERR: '.$matches[1][$index].' Undefined]';
 		}
-		$text = preg_replace("#".preg_quote($match,"#")."#",$var, $text);
+
+		$text = str_replace($match, $var , $text);
 	}
 
 	preg_match_all("/\[\[NOPROCESS\|(.*?)\]\]/",$text, $matches);
 	foreach ($matches[0] as $index => $match){
 		$id = $matches[1][$index];
-		$text = preg_replace("#".preg_quote($match,"#")."#",$EXTRAS['noProcess'][$id],$text);
+		$text = str_replace($match, $EXTRAS['noProcess'][$id] , $text);
 	}
 	
 	$text = str_replace("[[BR]]", "\n",$text);
+
+	
 
 	return $text;
 }
@@ -568,7 +503,9 @@ function wiki($wiki, $article){
 			$content[2] = "These are the differences between two versions of (($article)). Lines styled <span class=\"added\">"
 				."like this</span> have been added to the entry, lines <span class=\"removed\">like this</span> have been removed.\n\n";
 			
-			$_EXTRAS['textarea'] = $dataSource->diff($article, $_GET['from'], $_GET['to']);
+			$from = isset($_GET['from']) ? $_GET['from'] : false;
+			$to   = isset($_GET['to'])   ? $_GET['to']   : false;
+			$_EXTRAS['textarea'] = $dataSource->diff($article, $from, $to);
 			$content[2] .= "[[TEXTAREA]]";
 
 			break;

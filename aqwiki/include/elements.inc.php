@@ -207,12 +207,22 @@ function page($content){
 		break;
 
 	case "fragment":
-		header("Content-Type: text/html");
+		if (isset($_EXTRAS['mimetype'])){
+			$mime = $_EXTRAS['mimetype'];
+		} else {
+			$mime = 'text/html';
+		}
+		header("Content-Type: ".$mime);
 		$out = process($content[2],$content[0]);
 		break;
 
 	case "source":
-		header("Content-Type: text/plain");
+		if (isset($_EXTRAS['mimetype'])){
+			$mime = $_EXTRAS['mimetype'];
+		} else {
+			$mime = 'text/plain';
+		}
+		header("Content-Type: ".$mime);
 		$out = $content[2];
 		break;
 
@@ -235,6 +245,9 @@ function page($content){
 	
 		$out = $template;
 
+		$nearby = isset($_EXTRAS['nearby']) ? $_EXTRAS['nearby'] : '';
+		$versions = isset($_EXTRAS['versions']) ? $_EXTRAS['versions'] : '';
+
 		$out = preg_replace("/\[\[CONTENT\]\]/",$text, $out);
 		$out = preg_replace("/\[\[AQWIKI\]\]/",$_EXTRAS['versionString'], $out);
 		$out = preg_replace("/\[\[WIKI\]\]/",$content[0], $out);
@@ -246,9 +259,9 @@ function page($content){
 		$out = preg_replace("/\[\[BASE\]\]/",$base, $out);
 		$out = preg_replace("/\[\[USER\]\]/",userLink($_EXTRAS['me']), $out);
 		$out = preg_replace("/\[\[AUTH\]\]/",$_EXTRAS['auth'], $out);
-		$out = preg_replace("/\[\[NEARBY\]\]/",textile(menu($_EXTRAS['nearby'],"nearby")), $out);
+		$out = preg_replace("/\[\[NEARBY\]\]/",textile(menu($nearby,"nearby")), $out);
 		$out = preg_replace("/\[\[VERSIONCOUNT\]\]/",  count($dataSource->getPage($content[1]))  , $out);
-		$out = preg_replace("/\[\[VERSIONS\]\]/",textile($_EXTRAS['versions']), $out);
+		$out = preg_replace("/\[\[VERSIONS\]\]/",textile($versions), $out);
 
 
 		// Conditional includes
