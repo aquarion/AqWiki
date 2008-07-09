@@ -108,12 +108,34 @@ function process($text, $wiki){
 	#$text = preg_replace("/\[\[SEARCH\|(.*?)\]\]/",searchFor($wiki,'\1'), $text);
 	#$text = preg_replace("/\[\[ALLBY\|(.*?)\]\]/",searchAuthor($wiki,'\1'), $text);
 	if (preg_match("#\[\[RECENT\]\]#",$text)){
-		$text = preg_replace("/\[\[RECENT\]\]/",recent($wiki), $text);
+		$text = str_replace("[[RECENT]]",recent($wiki), $text);
 	}
 	if (preg_match("/\[\[INDEX\]\]/",$text)){
-		$text = preg_replace("/\[\[INDEX\]\]/",index(), $text);
+		$text = str_replace("[[INDEX]]",index(), $text);
 	}
-
+	
+	
+	
+	preg_match_all("/\[\[LOCKED\|(.*?)\]\]/",$text, $matches);
+	foreach ($matches[0] as $index => $match){
+		
+		$users = $matches[1][$index];
+		doAuth($users, "view this");
+		
+		$users_array = explode(',',$users);
+		
+		if (count($users_array) == 1){
+			$users_text = $users;
+		} else {
+			$last = array_pop($users_array);
+			$users_text = implode(", ", $users_array).' &amp; '.$last;
+		}
+		
+		$text = preg_replace("#".preg_quote($match,"#")."#",
+			'<div class="locked">Page is locked to '.$users_text.' </div>',
+			$text);
+	}
+	
 
 
 	// Search for User
@@ -433,6 +455,10 @@ function wiki($wiki, $article){
 	if(!isset($_GET['action'])){
 		$_GET['action'] = false;
 	}
+	
+
+
+
 
 	switch($_GET['action']){
 		case "viewrev":
@@ -691,6 +717,7 @@ function wiki($wiki, $article){
 					break;
 
 				case "Post":
+				
 								
 					$page = array_shift($dataSource->getPage($article));
 										
@@ -714,7 +741,13 @@ function wiki($wiki, $article){
 			} else {
 				$_EXTRAS['textarea'] = stripslashes($dataSource->getContent($article));
 			}
-			
+
+			preg_match_all("/\[\[LOCKED\|(.*?)\]\]/",$_EXTRAS['textarea'], $matches);
+			foreach ($matches[0] as $index => $match){
+				$users = $matches[1][$index];
+				doAuth($users, "view this");
+			}
+
 			if ($form){
 				$out .= "<form method=post action=\"".$_SERVER['REQUEST_URI']."\" class=\"shiny wikiedit\">";
 				$out .= '<h2>Editing "'.$content[1].'"</h2>';

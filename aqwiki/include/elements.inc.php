@@ -359,7 +359,7 @@ function index(){
 
 
 	foreach ($alphabet as $letter){
-		if ($return[$letter]){
+		if (isset($return[$letter])){
 			$index = $letter;
 			$menu .= " | \"".$index."\":#$index";
 			$string .= "\n<a name=\"".$index."\"></a>\n\nh2. ".$index."\n\n";

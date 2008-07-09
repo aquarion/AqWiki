@@ -159,6 +159,8 @@ function checkAuth($action){
 
 function doAuth($requirement, $action = "access this"){
 	global $dataSource;
+	global $_EXTRAS;
+	
 
 	debug("You have to be: ".$requirement." to ".$action);
 
@@ -175,6 +177,11 @@ function doAuth($requirement, $action = "access this"){
 		if(isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])){
 			$user = $dataSource->validateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 		}
+	}
+	
+	
+	if(in_array($_EXTRAS['me'], $_EXTRAS['admins'])){
+		return $user;
 	}
 
 
@@ -390,6 +397,8 @@ function debug($message) {
 		global $DEBUG;
 		$DEBUG[] = $message;
 	}
+	
+	//error_log('AqWiki '.$message );
 }
 
 function buildRSS($content){

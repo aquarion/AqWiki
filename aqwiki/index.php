@@ -285,6 +285,11 @@ if(isset($_EXTRAS['reqAuth'])){
 	doAuth($_EXTRAS['reqAuth'], "enter");
 }
 
+if(isset($_EXTRAS['reqUsers'])){
+	debug("Requiring auth from users array");
+	doAuth($_EXTRAS['reqUsers'], "enter");
+}
+
 debug("Memory Track: ".number_format(memory_get_usage()));
 
 echo page($content);

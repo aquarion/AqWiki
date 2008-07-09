@@ -50,11 +50,35 @@ function commaPlayerList($params = false){
 
 function getPlayerList(){
 	
+
 	if($this->playerlistCache !== false){
 		return $this->playerlistCache;
 	}
 	
-	$q = "select distinct user from ikariam_city";
+	$q = "select distinct ikariam_city.user from ikariam_city, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_user.status = 0";
+	//$q = "select distinct users.username as user from ikariam_city, users where ikariam_city.user = users.username";
+
+
+	$res = $this->data->sql_as_array($q);
+	$roster = array();
+	foreach($res as $player){
+		$roster[$player['user']] = $player['user'];
+	}
+	
+	natcasesort($roster);
+
+	$this->playerlistCache = $roster;
+	return $roster;
+	
+}
+
+function getRetiredUsers(){
+	
+	if($this->playerlistCache !== false){
+		return $this->playerlistCache;
+	}
+	
+	$q = "select distinct ikariam_city.user from ikariam_city, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_user.status = 5";
 	//$q = "select distinct users.username as user from ikariam_city, users where ikariam_city.user = users.username";
 
 
@@ -169,6 +193,129 @@ function showcities($params){
 	return $out;
 	
 }
+
+
+
+function showAllCities($params = false ){
+	
+	global $_EXTRAS;
+	$base = $_CONFIG['base'];
+	
+	$owner = $params[0];
+	
+	$out = '';
+	
+	$city = new IkariamCity($this->data);
+	$cities = $city->all_cities();
+	foreach($cities as $city){
+		
+		$out .= sprintf("|%s| !%s! |%s|((~%s))|", 		
+		ikariam::coordslink($city->x, $city->y), $city->resourceImage($city->resource), $city->name, $city->user);
+		
+		
+		
+		/*if (strtolower($this->settings['me']) == strtolower($city->user)){
+			$out .= ' | <a href="/'.$base.'/~'.$city->user.'/cities?edit='.$city->get('id').'">Edit</a> |';
+		} else {
+			$out .= '| |';
+		}*/
+		
+		$out .= "\n";
+	}
+	
+	
+	
+//	$_EXTRAS['cityList'] = $out;
+	
+	//return '[[RAWVAR|cityList]]';
+	
+	return $out."\n\n";
+	
+}
+
+
+function retirePlayer($params, $format){
+
+	if(count($params) == 0){
+		$user = $this->settings['user_page'];
+	} else {
+		$user = $params[0];
+	}
+	
+	
+	if(isset($this->settings['retire'])){
+
+		if (
+			(strtolower($this->settings['me']) != strtolower($user)) 
+			&& (!in_array($this->settings['me'], $this->settings['admins']))	
+		){
+			panic("Ikariam User System", "You can only  retire yourself.","Nice try");
+		}
+		
+		$q = sprintf("replace into ikariam_user (status, user) values (5, '%s')", $user);
+		$res = $this->data->query($q);
+
+	}
+	
+	if(isset($this->settings['unretire'])){
+
+		if (
+			(strtolower($this->settings['me']) != strtolower($user)) 
+			&& (!in_array($this->settings['me'], $this->settings['admins']))	
+		){
+			panic("Ikariam User System", "You can only unretire yourself.","Nice try");
+		}
+		
+		$q = sprintf("replace into ikariam_user (status, user) values (0, '%s')", $user);
+		$res = $this->data->query($q);
+
+	}
+	
+	if (in_array($this->settings['me'], $this->settings['admins'])){
+		$retire_link =   '<input type="submit" name="retire"   value="(Admin) Mark account Retired"><br/>';
+		$unretire_link = '<input type="submit" name="unretire" value="(Admin) Mark account Unretired"><br/>';
+	}
+	if (strtolower($this->settings['me']) == ($user)){
+		$retire_link =   '<input type="submit" name="retire"   name="retire" value="Retire my account"><br/>';
+		$unretire_link = '<input type="submit" name="unretire" name="retire" value="Recover my account"><br/>';
+	}
+	
+	$q = sprintf("select status from ikariam_user where user = '%s'", $user );
+
+	$res = $this->data->sql_as_array($q );
+
+	if ($res[0]['status'] == 0){
+
+	$form = '
+	<form action="cultural" method="post" class="shiny" style="width: 250; float: right">
+		<h2>Retire Account</h2>
+
+		<p>This is currently an active account. Once your account has been marked as inactive and then eventually purged from Ikariam, you (or an admin) should retire your account here to remove it from the map and treaties lists</p>
+
+		'.$retire_link.' 
+	</form>
+	';
+
+	} elseif ($res[0]['status'] == 5){
+
+	$form = '
+	<form action="cultural" method="post" class="shiny" style="width: 250; float: right">
+		<h2>Recover Account</h2>
+
+		<p>This is currently an inactive account. If you have now got an account on Eta again, you should recover it.</p>
+
+		'.$unretire_link.' 
+	</form>
+	';
+
+	} 
+
+	global $_EXTRAS;
+	$_EXTRAS['retire'] = $form;
+	
+	return '[[RAWVAR|retire]]';
+}
+
 
 function savecities($params = false){
 	
@@ -312,12 +459,55 @@ function showTreaties(){
 	
 	foreach($sortedlist as $username){
 		$treaty = $list[$username];
-		$out .= "# ".userLink($treaty['user'])." [ <a href=\"cultural?delete=".$treaty['id']."\">Delete Treaty</a> ]\n";
+		
+		$userline = '';
+		
+		switch ($treaty['user_status']){
+			
+			case NULL:
+				$userline = '<img src="http://imperial.istic.net/static/icons/silk/user_red.png"/>'.$treaty['user']." (Non Alliance)";
+				break;
+				
+			case 5:
+				$userline = '<strike>'.userLink($treaty['user'])."</strike> (Retired)";	
+				break;
+			
+			case 0:
+				$userline = userLink($treaty['user']);	
+				break;
+				
+		}
+		
+		$out .= "# ".$userline." [ <a href=\"cultural?delete=".$treaty['id']."\">Delete Treaty</a> ]\n";
 		
 	}
 	return $out;
 }
 
+function listCultureSlots($params = false){
+	
+	global $_EXTRAS;
+	
+	$q = "select * from ikariam_user where culture_slots > 0 and user != \"".$_EXTRAS['me']."\" order by modified desc";
+	$res = $this->data->sql_as_array($q);
+	
+	$culture = new IkariamCulturalExchange($this->data, $this->settings);
+	$list = $culture->listTreaties($_EXTRAS['me']);
+	
+	$out = '';
+	foreach ($res as $row){
+		$out .= sprintf("* %s - %s slot%s (Updated %s) ", userlink($row['user']),  $row['culture_slots'], $row['culture_slots'] == 1 ? '' : 's', $row['modified']);
+				
+		if(isset($list[$row['user']])){
+			$out .= " (You have an exchange with this person)";			
+		}
+		
+		$out .= "\n";
+	}
+	
+	return $out;
+	
+}
 
 function cultureGrid(){
 
@@ -341,14 +531,14 @@ function cultureGrid(){
 		';
 	}
 	
-	$q = "select * from ikariam_user order by user";
+	$q = "select * from ikariam_user where status = 0 order by user";
 	$res = $this->data->sql_as_array($q);
 	$slots = array();
 	foreach($res as $player){
 		$slots[$player['user']] = $player['culture_slots'];
 	}
 
-	$q = "select distinct user from ikariam_city order by user";
+	$q = "select distinct ikariam_city.user from ikariam_city, ikariam_user where ikariam_city.user = ikariam_user.user and ikariam_user.status = 0 order by user";
 	
 	$res = $this->data->sql_as_array($q);
 	
@@ -374,7 +564,7 @@ function cultureGrid(){
 		$out .= sprintf("<th class=\"horizontal\">%s</th>", implode(str_split($player), '<br/>'));
 	}
 	
-	$out .= '</tr>';
+	$out .= '<th>User</th></tr>';
 	$odd = true;
 	
 	foreach($roster as $vertical){
@@ -405,8 +595,18 @@ function cultureGrid(){
 			
 			$out .= sprintf("<td class=\"%s\">%s</td>", $class, $symbol);
 		}
-		$out .= "</tr>\n";
+		
+		$out .= sprintf("<th nowrap=\"nobr\">%s</th></tr>\n", userLink($vertical, 'cultural'));
 	}
+	
+	
+	$out .= '		
+	<tr><th>User &<br/> (Free Slots)</th>';
+	foreach($roster as $player){
+		$out .= sprintf("<th class=\"horizontal\">%s</th>", implode(str_split($player), '<br/>'));
+	}
+	
+	$out .= '<th>User</th></tr>';
 	
 	$out .= '</table></div>
 		';
@@ -589,7 +789,7 @@ $out .= <<<EOW
 EOW;
 
 
-$cities = $this->data->sql_as_array("select ikariam_city.*, users.username as user, concat(x,':',y) as coords from ikariam_city, users where ikariam_city.user = users.username");
+$cities = $this->data->sql_as_array("select ikariam_city.*, users.username as user, concat(x,':',y) as coords from ikariam_city, users, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_city.user = users.username and ikariam_user.status = 0");
 
 //for ($y = 0; $y < 100; $y++){
 //	for ($x = 0; $x < 100; $x++){
@@ -1040,6 +1240,18 @@ EOW;
 		}
 		return $cities;
 	}
+	
+	function all_cities($sort = 'ikariam_city.user'){
+		$sql = sprintf('select *, unix_timestamp(created) as created_epoch,  unix_timestamp(created) as created_epoch from ikariam_city, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_user.status = 0 order by %s asc ',$sort);
+		$result = $this->db_cxn->sql_as_array($sql);
+		$cities = array();
+		foreach($result as $data){
+			$city = new IkariamCity($this->db_cxn);
+			$city->load($data);
+			$cities[] = $city;
+		}
+		return $cities;
+	}
 }
 
 
@@ -1210,8 +1422,14 @@ EOW;
 			return false;
 		}
 		
-		
-		$q = sprintf('select * from ikariam_cultural where (initiator = "%1$s" and acceptor = "%2$s") or (initiator = "%2$s" and acceptor = "%1$s")', $this->settings['user_page'], $_POST['new_treaty_reciever']);
+		//, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_user.status = 0
+		$q = sprintf('select * from ikariam_cultural, ikariam_user as ikariam_user_initiator, ikariam_user as ikariam_user_acceptor 
+		where 
+			(ikariam_user_initiator.user = initiator and ikariam_user_initiator.status = 0)
+		and
+			(ikariam_user_acceptor.user = acceptor and ikariam_user_acceptor.status = 0)
+		and
+			((initiator = "%1$s" and acceptor = "%2$s") or (initiator = "%2$s" and acceptor = "%1$s"))  ', $this->settings['user_page'], $_POST['new_treaty_reciever']);
 			
 		if (count($this->db_cxn->sql_as_array($q)) != 0){
 			$this->error = "There is already a treaty registered between those people";
@@ -1236,7 +1454,7 @@ EOW;
 		
 		$options = '';
 		
-		$q = "select distinct user from ikariam_city order by user";
+		$q = "select distinct ikariam_city.user from ikariam_city, ikariam_user where ikariam_user.user = ikariam_city.user and ikariam_user.status = 0 order by user";
 		
 		$res = $this->db_cxn->sql_as_array($q);
 		foreach($res as $player){
@@ -1273,7 +1491,7 @@ EOW;
 	<select name="new_treaty_reciever"
 			dojoType="dijit.form.ComboBox"
 			autocomplete="true">
-			$options
+			'.$options.'
 	</select>
 	
 	<input type="submit" value="Save" />
@@ -1292,15 +1510,40 @@ EOW;
 	}
 	
 	function listTreaties($user){
-		$q = sprintf('select * from ikariam_cultural where (initiator = "%1$s" or acceptor = "%1$s")', $user);
+	
+		/*
+		$q = sprintf('select * from ikariam_cultural, ikariam_user as ikariam_user_initiator, ikariam_user as ikariam_user_acceptor 
+		where 
+			(ikariam_user_initiator.user = initiator and ikariam_user_initiator.status = 0)
+		and
+			(ikariam_user_acceptor.user = acceptor and ikariam_user_acceptor.status = 0)
+		and
+			(initiator = "%1$s" or acceptor = "%1$s")  ', $user);
+			*/
+			
+			
+		$q = sprintf('select ikariam_cultural.*, ikariam_user_initiator.status as initiator_status,  ikariam_user_acceptor.status as acceptor_status from ikariam_cultural
+			
+			left join ikariam_user as ikariam_user_initiator on ikariam_user_initiator.user = initiator
+			left join ikariam_user as ikariam_user_acceptor on ikariam_user_acceptor.user = acceptor
+		where 
+			(initiator = "%1$s" or acceptor = "%1$s")  ', $user);
+		
+
+		//$q = sprintf('select * from ikariam_cultural where (initiator = "%1$s" or acceptor = "%1$s")', $user);
 		$raw_treaties = $this->db_cxn->sql_as_array($q);
-				
+		
 		$treaties = array();
 		foreach($raw_treaties as $treaty){
 			if (strtolower($treaty['initiator']) == strtolower($user)){
 				$treaty['user'] = $treaty['acceptor'];
+				if (is_null($treaty['acceptor_status'])){
+					//$treaty['acceptor_status'] = NULL;
+				}
+				$treaty['user_status'] = $treaty['acceptor_status'];
 			} else {
 				$treaty['user'] = $treaty['initiator'];
+				$treaty['user_status'] = $treaty['initiator_status'];
 			}
 			$treaties[$treaty['user']] = $treaty;
 		}
