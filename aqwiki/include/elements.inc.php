@@ -284,6 +284,18 @@ function page($content){
 			}
 			#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 		}
+	
+	
+		preg_match_all("/\[\[IfLoggedIn\|(.*?)\|(.*?)\]\]/", $out, $matches);
+		foreach($matches[0] as $index => $match){
+			$result = $matches[1][$index];
+			if ($_EXTRAS['auth'] !== 'host'){
+				$out = preg_replace("#".preg_quote($match,"#")."#",$matches[1][$index],$out);
+			} else {
+				$out = preg_replace("#".preg_quote($match,"#")."#",$matches[2][$index],$out);
+			}
+			#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
+		}
 
 
 		preg_match_all("/\[\[PLURAL\|(.*?)\]\]/", $out, $matches);

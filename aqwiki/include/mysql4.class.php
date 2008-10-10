@@ -429,11 +429,13 @@ class pearDB extends dataSource {
 			.' revision.created as revised, revision.revision, max(revision.revision) as toprev'
 			.' FROM revision'
 			.' LEFT JOIN wikipage ON wikipage.page = revision.page'
-			.' WHERE content LIKE "%'.$terms.'%" AND wiki = "'.$this->wiki.'"'
+			//.' WHERE content LIKE "%'.$terms.'%" AND wiki = "'.$this->wiki.'"'
+			." WHERE (content LIKE \"%".addslashes($terms)."%\" "
+			." OR name LIKE \"%".addslashes($terms)."%\")"
+			." AND wiki = \"".$this->wiki."\""
 			.' GROUP BY wikipage.page'
 			.' HAVING revision.revision = toprev'
 			.' ORDER BY revision.revision desc';
-		
 
 		$result = $this->query($sql);
 		if ($result->numRows() != 0){
@@ -562,7 +564,9 @@ class mysql4 extends mysql {
 		$sql = "SELECT wikipage.page, name, wikipage.created, max(revision.created) as revised, revision.revision"
 		." FROM revision"
 		." LEFT JOIN wikipage ON wikipage.page = revision.page and revision.revision = (SELECT max(r2.revision) from revision as r2 where r2.page = revision.page)"
-		." WHERE content LIKE \"%".addslashes($terms)."%\" AND wiki = \"".$this->wiki."\""
+		." WHERE (content LIKE \"%".addslashes($terms)."%\" "
+		." OR wikipage.page LIKE \"%".addslashes($terms)."%\")"
+		." AND wiki = \"".$this->wiki."\""
 		." GROUP BY wikipage.page"; 
 
 

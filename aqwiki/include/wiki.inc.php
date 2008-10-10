@@ -55,6 +55,18 @@ function process($text, $wiki){
 		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
 	}
 
+
+	preg_match_all("/\[\[IfLoggedIn\|(.*?)\|(.*?)\]\]/", $text, $matches);
+	foreach($matches[0] as $index => $match){
+		$result = $matches[1][$index];
+		if (isset($_EXTRAS['me'])){
+			$text = preg_replace("#".preg_quote($match,"#")."#",$matches[1][$index],$text);
+		} else {
+			$text = preg_replace("#".preg_quote($match,"#")."#",$matches[2][$index],$text);
+		}
+		#$_EXTRAS[$matches[1][$index]] = $matches[2][$index];
+	}
+
 	preg_match_all("/\[\[IFEDIT\|(.*?)\|(.*?)\]\]/", $text, $matches);
 	foreach($matches[0] as $index => $match){
 		if (checkAuth("edit")){
@@ -584,7 +596,7 @@ function wiki($wiki, $article){
 					$errors[] = "Username cannot be blank";
 				} elseif(strstr($_POST['username'],",")){
 					$errors[] = "Username cannot contain commas";
-				} elseif(in_array($_POST['username'], $_EXTRAS['reservedUsers'])){
+				} elseif(isset($_EXTRAS['reservedUsers']) && in_array($_POST['username'], $_EXTRAS['reservedUsers'])){
 					$errors[] = "Username invalid";
 				} elseif (!$dataSource->unique("users", "username", $_POST['username'])){
 					$errors[] = "Username must be unique";

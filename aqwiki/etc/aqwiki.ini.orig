@@ -1,8 +1,8 @@
-; $Id: aqwiki.ini.orig,v 1.6 2004/10/22 13:56:07 aquarion Exp $
+; $Id: aqwiki.ini.orig,v 1.4 2004/08/29 17:25:08 aquarion Exp $
 ; AqWiki config
 ; 
 
-db = "mysql://aquarion:halibutabrahms@localhost/klind"
+db = "mysql://username:password@host/databaseName"
 
 ;base = ""
 ; Base contains that path relative to the site root that aqWiki runs in,
@@ -33,12 +33,3 @@ debug = true
 
 newwikis = true
 ;newwikis = true
-
-; Strip this many directories from the start
-; For example, in http://host.name/this/is/a/test/aqwiki_path/wiki_name/article
-; 1 would strip "this" and '3' would strip "this/is/a"
-; The only reason you would want to do this is if you're doing magic with
-; htaccess and you find that the generated path is wrong and you
-; need to trim some off. Fortunatly, so did I :-)
-
-stripFromStart = 1
