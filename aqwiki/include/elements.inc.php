@@ -588,7 +588,7 @@ function userLink($username, $subsection = false){
 		
 		$link = $user['username'].($subsection ? '/'.$subsection : '');
 	
-		if (in_array($user['username'], $_EXTRAS['admins'])){
+		if (isset($_EXTRAS['admins']) && in_array($user['username'], $_EXTRAS['admins'])){
 			$image = 'http://imperial.istic.net/static/icons/silk/user_suit.png';
 		} else {
 			$image = 'http://imperial.istic.net/static/icons/silk/user.png';

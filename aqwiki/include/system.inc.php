@@ -180,7 +180,7 @@ function doAuth($requirement, $action = "access this"){
 	}
 	
 	
-	if(in_array($_EXTRAS['me'], $_EXTRAS['admins'])){
+	if(isset($_EXTRAS['admins']) && in_array($_EXTRAS['me'], $_EXTRAS['admins'])){
 		return $user;
 	}
 

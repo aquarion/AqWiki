@@ -314,7 +314,9 @@ Applying Attributes:
                 if(trim($cell)!='')
                     $cells[] = "\t\t\t<t$ctyp$catts>$cell</t$ctyp>";
             }
-            $rows[] = "\t\t<tr$ratts>\n".join("\n",$cells)."\n\t\t</tr>";
+	    if(is_array($cells)){
+            	$rows[] = "\t\t<tr$ratts>\n".join("\n",$cells)."\n\t\t</tr>";
+	    }
             unset($cells,$catts);
         }
         return "\t<table$tatts>\n".join("\n",$rows)."\n\t</table>\n\n";
