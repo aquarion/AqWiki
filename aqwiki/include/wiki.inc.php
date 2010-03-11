@@ -502,6 +502,8 @@ function wiki($wiki, $article){
 
 			$limit = 3;
 			$current = 0;
+			
+			$_EXTRAS['versions'] = '';
 
 			foreach ($pages as $row) {
 
